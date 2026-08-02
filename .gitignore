@@ -2,3 +2,10 @@ node_modules
 .next
 *.log
 .DS_Store
+.env
+tsconfig.tsbuildinfo
+
+# Old nested app directories — all code is now at the repo root
+admissionform-main/
+cap_round_parser-main/
+scholaris-pgdata/

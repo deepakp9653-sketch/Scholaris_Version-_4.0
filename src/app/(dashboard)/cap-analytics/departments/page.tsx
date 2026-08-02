@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getCapDashboardData } from "@/lib/actions/cap";
 import { CapChoiceCodeMatrix } from "@/components/cap/cap-choice-code-matrix";
@@ -8,9 +8,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2 } from "lucide-react";
 
-export default function CapDepartmentsPage() {
+function CapDepartmentsContent() {
   const searchParams = useSearchParams();
-  const batchId = searchParams.get("batchId") ?? undefined;
+  const batchId = searchParams?.get("batchId") ?? undefined;
 
   const [dashData, setDashData] = useState<Awaited<ReturnType<typeof getCapDashboardData>> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,10 @@ export default function CapDepartmentsPage() {
       <div className="flex flex-1 flex-col items-center justify-center gap-4 p-12 text-center">
         <h2 className="text-xl font-semibold">No CAP data available</h2>
         <Link href="/cap-analytics/data">
-          <Button className="gap-2"><Upload className="w-4 h-4" />Upload CAP PDF</Button>
+          <Button className="gap-2">
+            <Upload className="w-4 h-4" />
+            Upload CAP PDF
+          </Button>
         </Link>
       </div>
     );
@@ -59,5 +62,20 @@ export default function CapDepartmentsPage() {
       </div>
       <CapChoiceCodeMatrix choiceCodes={dashData.choiceCodes as Parameters<typeof CapChoiceCodeMatrix>[0]["choiceCodes"]} />
     </div>
+  );
+}
+
+export default function CapDepartmentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center p-12 text-muted-foreground gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <span className="text-sm font-medium">Loading Department Matrix…</span>
+        </div>
+      }
+    >
+      <CapDepartmentsContent />
+    </Suspense>
   );
 }

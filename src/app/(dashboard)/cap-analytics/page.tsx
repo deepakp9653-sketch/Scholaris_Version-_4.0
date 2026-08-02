@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getCapDashboardData } from "@/lib/actions/cap";
 import { CapKpiCards } from "@/components/cap/cap-kpi-cards";
@@ -12,9 +12,9 @@ import { Building2, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function CapAnalyticsOverviewPage() {
+function CapAnalyticsOverviewContent() {
   const searchParams = useSearchParams();
-  const batchId = searchParams.get("batchId") ?? undefined;
+  const batchId = searchParams?.get("batchId") ?? undefined;
 
   const [data, setData] = useState<Awaited<ReturnType<typeof getCapDashboardData>> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,5 +131,20 @@ export default function CapAnalyticsOverviewPage() {
         batchId={batch.id}
       />
     </div>
+  );
+}
+
+export default function CapAnalyticsOverviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center p-12 text-muted-foreground gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <span className="text-sm font-medium">Loading CAP Analytics…</span>
+        </div>
+      }
+    >
+      <CapAnalyticsOverviewContent />
+    </Suspense>
   );
 }

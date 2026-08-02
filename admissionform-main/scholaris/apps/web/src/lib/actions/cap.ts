@@ -423,15 +423,40 @@ export async function getCapBatches() {
   }
 }
 
-// ─── Delete batch ─────────────────────────────────────────────────────────────
-
 export async function deleteCapBatch(batchId: string): Promise<{ success: boolean; error?: string }> {
   await requireAuth();
   try {
+    const candidateIds = (
+      await prisma.capCandidate.findMany({
+        where: {
+          choiceCode: {
+            batchId,
+          },
+        },
+        select: { id: true },
+      })
+    ).map((c) => c.id);
+
+    if (candidateIds.length > 0) {
+      await prisma.admissionRecord.updateMany({
+        where: { capCandidateId: { in: candidateIds } },
+        data: { capCandidateId: null },
+      });
+      await prisma.capCandidate.deleteMany({
+        where: {
+          choiceCode: {
+            batchId,
+          },
+        },
+      });
+    }
+
     await prisma.capUploadBatch.delete({ where: { id: batchId } });
     revalidatePath("/cap-analytics");
+    revalidatePath("/admissions");
     return { success: true };
   } catch (err: unknown) {
+    console.error("deleteCapBatch error:", err);
     return { success: false, error: err instanceof Error ? err.message : "Delete failed" };
   }
 }

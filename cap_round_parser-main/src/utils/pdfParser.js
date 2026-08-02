@@ -236,52 +236,84 @@ export async function parseCapPdfArrayBuffer(arrayBuffer, fileName = "Uploaded_A
         }
       }
 
-      const meritStr = rowItems.filter(w => w.x >= 65 && w.x < 115).map(w => w.text).join(' ');
-      const scoreStr = rowItems.filter(w => w.x >= 115 && w.x < 175).map(w => w.text).join(' ');
-      const appidStr = rowItems.filter(w => w.x >= 175 && w.x < 240).map(w => w.text).join(' ');
-      const nameStr = rowItems.filter(w => w.x >= 240 && w.x < 410).map(w => w.text).join(' ');
-      const genderStr = rowItems.filter(w => w.x >= 410 && w.x < 440).map(w => w.text).join(' ');
-      const catStr = rowItems.filter(w => w.x >= 440 && w.x < 510).map(w => w.text).join(' ');
-      const seatStr = rowItems.filter(w => w.x >= 510 && w.x < 585).map(w => w.text).join(' ');
+      const sortedRowItems = rowItems.sort((a, b) => a.x - b.x);
+      const fullRowText = sortedRowItems.map((w) => w.text).join(" ").trim();
+      const isVacant = fullRowText.includes("VACANT");
 
-      const isVacant = (appidStr.includes("VACANT") || nameStr.includes("VACANT") || seatStr.includes("VACANT"));
-
-      // Clean Application ID using exact regex EN\d+
-      let appId = "VACANT";
-      if (!isVacant) {
-        const fullLine = (appidStr + " " + nameStr).toUpperCase();
-        const mApp = fullLine.match(/(EN\d+|VACANT)/);
-        appId = mApp ? mApp[1] : "VACANT";
-      }
-
-      let candidateName = "VACANT";
-      if (!isVacant) {
-        let clean = nameStr.trim();
-        LEGEND_STRINGS.forEach(kw => {
-          clean = clean.replace(kw, '');
-        });
-        candidateName = clean.replace(/\s+/g, ' ').trim() || "CANDIDATE NAME";
-      }
-
+      let appId = isVacant ? "VACANT" : "VACANT";
       let meritNo = null;
-      const mMatch = meritStr.match(/\b(\d+)\b/);
-      if (mMatch && !isVacant) meritNo = parseInt(mMatch[1], 10);
-
       let meritScore = null;
-      const sMatch = scoreStr.match(/(\d+\.\d+|\d+)/);
-      if (sMatch && !isVacant) meritScore = parseFloat(sMatch[1]);
+      let candidateName = isVacant ? "VACANT" : "CANDIDATE NAME";
+      let gender = isVacant ? null : "M";
+      let category = null;
+      let rawSeatType = isVacant ? "VACANT" : "GOPENH";
 
-      const gender = ['M', 'F'].includes(genderStr.trim()) ? genderStr.trim() : 'M';
-      
-      let category = catStr.trim() || null;
-      if (category) {
-        LEGEND_STRINGS.forEach(kw => {
-          category = category.replace(kw, '');
+      if (!isVacant) {
+        // Extract Application ID (e.g. EN26326199)
+        const appMatch = fullRowText.match(/\b([A-Z]{2}\d{8}|EN\d+|DSE\d+|MB\d+|MC\d+)\b/i);
+        if (appMatch) {
+          appId = appMatch[1].toUpperCase();
+        }
+
+        // Extract Score (e.g. 80.4716144)
+        const scoreMatch = fullRowText.match(/\b(\d{1,3}\.\d{4,})\b/);
+        if (scoreMatch) {
+          meritScore = parseFloat(scoreMatch[1]);
+        } else {
+          const fallbackScoreMatch = fullRowText.match(/\b(\d{2,3}\.\d+)\b/);
+          if (fallbackScoreMatch) meritScore = parseFloat(fallbackScoreMatch[1]);
+        }
+
+        // Extract Merit No (Integer e.g. 81340)
+        const numbers = fullRowText.match(/\b\d+\b/g) || [];
+        for (const numStr of numbers) {
+          const val = parseInt(numStr, 10);
+          if (
+            val !== anc.srNum &&
+            val > 0 &&
+            val < 500000 &&
+            !fullRowText.includes(`.${numStr}`) &&
+            (!appId || !appId.includes(numStr))
+          ) {
+            meritNo = val;
+            break;
+          }
+        }
+
+        // Extract Gender ('F' or 'M')
+        const genderItem = sortedRowItems.find(
+          (w) => w.x >= 400 && w.x <= 450 && (w.text.trim() === "F" || w.text.trim() === "M")
+        );
+        if (genderItem) {
+          gender = genderItem.text.trim();
+        } else {
+          const gMatch = fullRowText.match(/\s([MF])\s/);
+          if (gMatch) gender = gMatch[1];
+        }
+
+        // Extract Candidate Name
+        const nameItems = sortedRowItems.filter((w) => w.x >= 230 && w.x < 410);
+        let rawName = nameItems.map((w) => w.text).join(" ").trim();
+        LEGEND_STRINGS.forEach((kw) => {
+          rawName = rawName.replace(kw, "");
         });
-        category = category.trim();
-      }
+        const cleanName = rawName.replace(/[^A-Za-z\s]/g, "").replace(/\s+/g, " ").trim();
+        if (cleanName) candidateName = cleanName;
 
-      const rawSeatType = seatStr.trim() || (isVacant ? "VACANT" : "GOPENH");
+        // Extract Category
+        const catItems = sortedRowItems.filter((w) => w.x >= 440 && w.x < 510);
+        let rawCat = catItems.map((w) => w.text).join(" ").trim();
+        LEGEND_STRINGS.forEach((kw) => {
+          rawCat = rawCat.replace(kw, "");
+        });
+        category = rawCat.trim() || null;
+
+        // Extract Seat Type
+        const seatItems = sortedRowItems.filter((w) => w.x >= 510);
+        if (seatItems.length > 0) {
+          rawSeatType = seatItems.map((w) => w.text).join(" ").trim();
+        }
+      }
 
       let statusSymbol = null;
       let statusLabel = isVacant ? "Vacant" : "Standard / Direct Allotment";

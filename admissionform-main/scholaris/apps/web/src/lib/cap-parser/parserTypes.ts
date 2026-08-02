@@ -28,9 +28,11 @@ export interface ParsedCandidate {
   application_id: string | null;
   candidate_name: string;
   gender: Gender | null;
+  category?: string | null;
   candidate_category: string | null;
   raw_seat_type: string;
   allotted_seat_type: string;
+  seat_type_code?: string | null;
   status_symbol: string | null;
   status_label: string;
   is_vacant: boolean;

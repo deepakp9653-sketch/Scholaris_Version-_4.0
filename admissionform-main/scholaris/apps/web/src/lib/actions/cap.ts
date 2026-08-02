@@ -461,6 +461,41 @@ export async function deleteCapBatch(batchId: string): Promise<{ success: boolea
   }
 }
 
+// ─── Get All Candidates for Export (Full Batch) ───────────────────────────────
+
+export async function getAllCapCandidatesForExport(batchId: string) {
+  await requireAuth();
+  try {
+    const candidates = await prisma.capCandidate.findMany({
+      where: {
+        choiceCode: {
+          batchId,
+        },
+      },
+      include: {
+        choiceCode: {
+          include: {
+            department: true,
+          },
+        },
+        seatPool: true,
+      },
+      orderBy: [
+        { choiceCode: { code: "asc" } },
+        { srNo: "asc" },
+      ],
+    });
+
+    return candidates.map((c) => ({
+      ...c,
+      score: c.score ? Number(c.score) : null,
+    }));
+  } catch (err) {
+    console.error("getAllCapCandidatesForExport error:", err);
+    return [];
+  }
+}
+
 // ─── Search CAP Candidates for Wizard Auto-Fetch ──────────────────────────────
 
 export async function searchCapCandidates(query: string) {

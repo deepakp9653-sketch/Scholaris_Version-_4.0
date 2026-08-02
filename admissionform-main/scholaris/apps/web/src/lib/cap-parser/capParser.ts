@@ -308,7 +308,7 @@ export async function parseCapPdf(
 
         // Extract Gender ('F' or 'M')
         const genderItem = sortedRowItems.find(
-          (w) => w.x >= 400 && w.x <= 450 && (w.text.trim() === "F" || w.text.trim() === "M")
+          (w) => w.x >= 400 && w.x <= 440 && (w.text.trim() === "F" || w.text.trim() === "M")
         );
         if (genderItem) {
           gender = genderItem.text.trim() as Gender;
@@ -326,16 +326,18 @@ export async function parseCapPdf(
         const cleanName = rawName.replace(/[^A-Za-z\s]/g, "").replace(/\s+/g, " ").trim();
         if (cleanName) candidateName = cleanName;
 
-        // Extract Category
-        const catItems = sortedRowItems.filter((w) => w.x >= 440 && w.x < 510);
+        // Extract Category (x: 440 .. 500)
+        const catItems = sortedRowItems.filter(
+          (w) => w.x >= 440 && w.x < 500 && w.text.trim() !== "M" && w.text.trim() !== "F"
+        );
         let rawCat = catItems.map((w) => w.text).join(" ").trim();
         LEGEND_KEYWORDS.forEach((kw) => {
           rawCat = rawCat.replace(kw, "");
         });
         category = rawCat.trim() || null;
 
-        // Extract Seat Type
-        const seatItems = sortedRowItems.filter((w) => w.x >= 510);
+        // Extract Seat Type (x >= 500)
+        const seatItems = sortedRowItems.filter((w) => w.x >= 500);
         if (seatItems.length > 0) {
           rawSeatType = seatItems.map((w) => w.text).join(" ").trim();
         }
@@ -370,9 +372,11 @@ export async function parseCapPdf(
         application_id: appId,
         candidate_name: candidateName,
         gender,
+        category: isVacant ? null : category,
         candidate_category: isVacant ? null : category,
         raw_seat_type: rawSeatType,
         allotted_seat_type: seatTypeCode,
+        seat_type_code: seatTypeCode,
         status_symbol: statusSymbol,
         status_label: statusLabel,
         is_vacant: isVacant,

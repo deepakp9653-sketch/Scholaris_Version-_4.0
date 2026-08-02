@@ -72,13 +72,12 @@ export function CandidatePageClient({ batchId, initialData }: Props) {
         `"${c.statusLabel || (c.isVacant ? "Vacant" : "Allotted")}"`,
       ]);
 
-      const csvContent =
-        "data:text/csv;charset=utf-8,\uFEFF" +
-        [headers.join(","), ...rows.map((e: any[]) => e.join(","))].join("\n");
+      const csvString = [headers.join(","), ...rows.map((e: any[]) => e.join(","))].join("\n");
+      const blob = new Blob(["\uFEFF" + csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
 
-      const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", url);
       link.setAttribute(
         "download",
         `Cap_Candidate_Records_${new Date().toISOString().slice(0, 10)}.csv`
@@ -86,6 +85,7 @@ export function CandidatePageClient({ batchId, initialData }: Props) {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Export Excel error:", err);
     } finally {

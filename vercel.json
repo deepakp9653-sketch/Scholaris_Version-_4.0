@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd admissionform-main/scholaris/apps/web && npx prisma generate && next build",
-  "outputDirectory": "admissionform-main/scholaris/apps/web/.next",
-  "installCommand": "cd admissionform-main/scholaris/apps/web && npm install"
-}

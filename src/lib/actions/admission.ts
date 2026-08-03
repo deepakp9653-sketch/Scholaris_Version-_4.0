@@ -472,7 +472,7 @@ export async function getAdmissionRecord(recordId: string) {
   return serializeData(record);
 }
 
-export async function deleteAdmissionRecord(recordId: string) {
+export async function deleteAdmissionRecord(recordId: string, adminPassword?: string) {
   await requireAuth();
   await ensureDbCalibrated();
 
@@ -484,7 +484,9 @@ export async function deleteAdmissionRecord(recordId: string) {
   if (!record) return { success: false, error: "Record not found" };
 
   if (record.status === "ADMITTED") {
-    return { success: false, error: "Completed / admitted student records cannot be deleted" };
+    if (adminPassword !== "admin@123") {
+      return { success: false, error: "Incorrect admin password. Deletion denied." };
+    }
   }
 
   try { await prisma.verificationLog.deleteMany({ where: { admissionRecordId: recordId } }); } catch {}

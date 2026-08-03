@@ -52,7 +52,7 @@ export function PreviewClient({ recordId, currentStatus }: PreviewClientProps) {
           </Button>
           <a
             href={`/api/print/${recordId}/pdf`}
-            download={`admission-forms-${recordId}.pdf`}
+            download
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:opacity-90"
           >
             <Download className="w-4 h-4" />

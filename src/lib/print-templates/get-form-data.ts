@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { decryptField, decryptAadharFromBuffer } from "@/lib/encryption";
+import { decryptAadharFromBuffer } from "@/lib/encryption";
 
 export interface PrintFormData {
   record: {
@@ -33,7 +33,21 @@ export async function getPrintFormData(recordId: string): Promise<PrintFormData 
 
   if (!record) return null;
 
-  const student = { ...(record.studentProfile as Record<string, unknown> ?? {}) };
+  // Calculate sequential form number starting from 001, 002, etc. based on admission creation order
+  const allRecords = await prisma.admissionRecord.findMany({
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
+  const index = allRecords.findIndex((r) => r.id === recordId);
+  const sequenceNo = index >= 0 ? index + 1 : 1;
+  const formNumberStr = String(sequenceNo).padStart(3, "0");
+
+  const student = {
+    ...(record.studentProfile as Record<string, unknown> ?? {}),
+    serialNumber: formNumberStr,
+    formNumber: formNumberStr,
+  };
+
   if (record.studentProfile?.aadharNoEncrypted) {
     student.aadharNoDecrypted = decryptAadharFromBuffer(record.studentProfile.aadharNoEncrypted);
   } else {

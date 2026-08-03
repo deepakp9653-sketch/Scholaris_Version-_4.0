@@ -25,6 +25,18 @@ export async function GET(
     return new Response("Record not found", { status: 404 });
   }
 
+  const formNo = String(data.student.serialNumber || data.student.formNumber || "001").padStart(3, "0");
+  const surname = String(data.student.fullNameSurname || "").trim();
+  const firstName = String(data.student.fullNameFirst || "").trim();
+  const fatherName = String(data.student.fullNameFather || data.student.fatherName || "").trim();
+
+  // Format: (form.no._Student_name).pdf e.g. 001_AdityaDilipKamthe.pdf
+  let studentName = `${firstName}${fatherName}${surname}`.replace(/[^a-zA-Z0-9]/g, "");
+  if (!studentName) {
+    studentName = "Candidate";
+  }
+  const filename = `${formNo}_${studentName}.pdf`;
+
   const html = renderPrintHtml(data);
   const browser = await getBrowser();
   const page = await browser.newPage();
@@ -41,7 +53,7 @@ export async function GET(
     return new Response(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="admission-forms-${id}.pdf"`,
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } finally {

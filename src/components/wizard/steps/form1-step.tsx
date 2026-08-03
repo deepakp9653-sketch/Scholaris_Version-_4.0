@@ -409,12 +409,12 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
           {/* Academic Year - Fully Editable */}
           <div className="space-y-2">
             <Label>Academic Year (Start)</Label>
-            <Input type="number" name="academicYearStart" defaultValue={2026} className="font-mono font-semibold" />
+            <Input type="number" {...register("admissionYearStart", { valueAsNumber: true })} className="font-mono font-semibold" />
           </div>
 
           <div className="space-y-2">
             <Label>Academic Year (End)</Label>
-            <Input type="number" name="academicYearEnd" defaultValue={2030} className="font-mono font-semibold" />
+            <Input type="number" {...register("admissionYearEnd", { valueAsNumber: true })} className="font-mono font-semibold" />
           </div>
 
           <div className="space-y-2">
@@ -448,7 +448,7 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
           </div>
           <div className="space-y-2">
             <Label>English Out Of</Label>
-            <Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" />
+            <Input type="number" step="0.01" {...register("sscMarksEnglishOutOf")} className="font-mono" />
           </div>
 
           <div className="space-y-2">
@@ -464,7 +464,7 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
           </div>
           <div className="space-y-2">
             <Label>Maths Out Of</Label>
-            <Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" />
+            <Input type="number" step="0.01" {...register("sscMarksMathsOutOf")} className="font-mono" />
           </div>
 
           <div className="space-y-2">
@@ -480,7 +480,7 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
           </div>
           <div className="space-y-2">
             <Label>Grand Total Out Of</Label>
-            <Input type="number" step="0.01" value={500} readOnly className="bg-muted/40 font-mono" />
+            <Input type="number" step="0.01" {...register("sscGrandTotalOutOf")} className="font-mono" />
           </div>
 
           <div className="space-y-2">
@@ -515,13 +515,13 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-4">
           <div className="space-y-2"><Label>Physics Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscPhysicsObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Physics Out Of</Label><Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Physics Out Of</Label><Input type="number" step="0.01" {...register("hscPhysicsOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2"><Label>Chemistry Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscChemistryObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Chemistry Out Of</Label><Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Chemistry Out Of</Label><Input type="number" step="0.01" {...register("hscChemistryOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2"><Label>Maths Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscMathsObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Maths Out Of</Label><Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Maths Out Of</Label><Input type="number" step="0.01" {...register("hscMathsOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2">
             <Label className="flex items-center justify-between">
@@ -535,11 +535,11 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
 
           <div className="space-y-2">
             <Label>PCM Total Out Of</Label>
-            <Input type="number" step="0.01" value={300} readOnly className="bg-muted/40 font-mono" />
+            <Input type="number" step="0.01" {...register("hscPcmTotalOutOf")} className="font-mono" />
           </div>
 
           <div className="space-y-2"><Label>Grand Total Obtained</Label><Input type="number" step="0.01" min={0} max={600} {...register("hscGrandTotalObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Grand Total Out Of</Label><Input type="number" step="0.01" value={600} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Grand Total Out Of</Label><Input type="number" step="0.01" {...register("hscGrandTotalOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2">
             <Label>Year of Passing</Label>
@@ -563,13 +563,13 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-4">
           <div className="space-y-2"><Label>Physics Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("cetPhysicsObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Physics Out Of</Label><Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Physics Out Of</Label><Input type="number" step="0.01" {...register("cetPhysicsOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2"><Label>Chemistry Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("cetChemistryObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Chemistry Out Of</Label><Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Chemistry Out Of</Label><Input type="number" step="0.01" {...register("cetChemistryOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2"><Label>Maths Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("cetMathsObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Maths Out Of</Label><Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" /></div>
+          <div className="space-y-2"><Label>Maths Out Of</Label><Input type="number" step="0.01" {...register("cetMathsOutOf")} className="font-mono" /></div>
 
           {/* CET Percentile - Fully Editable */}
           <div className="space-y-2">
@@ -579,7 +579,7 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
 
           <div className="space-y-2">
             <Label>PCM Total Out Of</Label>
-            <Input type="number" step="0.01" value={100} readOnly className="bg-muted/40 font-mono" />
+            <Input type="number" step="0.01" {...register("cetPcmTotalOutOf")} className="font-mono" />
           </div>
 
           <div className="space-y-2">

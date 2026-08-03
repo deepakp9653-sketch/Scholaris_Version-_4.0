@@ -179,11 +179,17 @@ export const PRINT_STYLES = `
 
   /* ---- Print Media ---- */
   @media print {
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
     html, body {
       margin: 0 !important;
       padding: 0 !important;
       background: #fff !important;
       width: 210mm !important;
+      height: auto !important;
+      overflow: visible !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -192,16 +198,20 @@ export const PRINT_STYLES = `
       margin: 0 !important;
       padding: 8mm 10mm !important;
       width: 210mm !important;
-      height: 297mm !important;
-      max-height: 297mm !important;
+      min-height: 297mm !important;
+      height: auto !important;
+      box-sizing: border-box !important;
       page-break-after: always !important;
+      break-after: page !important;
       page-break-inside: avoid !important;
-      overflow: hidden !important;
+      break-inside: avoid !important;
+      overflow: visible !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
     .page-container:last-child {
       page-break-after: avoid !important;
+      break-after: avoid !important;
     }
     .no-print {
       display: none !important;

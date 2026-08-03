@@ -30,33 +30,40 @@ export async function GET(
   const firstName = String(data.student.fullNameFirst || "").trim();
   const fatherName = String(data.student.fullNameFather || data.student.fatherName || "").trim();
 
-  // Format: (form.no._Student_name).pdf e.g. 001_AdityaDilipKamthe.pdf
-  let studentName = `${firstName}${fatherName}${surname}`.replace(/[^a-zA-Z0-9]/g, "");
-  if (!studentName) {
-    studentName = "Candidate";
-  }
-  const filename = `${formNo}_${studentName}.pdf`;
+  // Format: Form.No_Student_Name.pdf e.g. 001_SHINDE_RUDDHI_RUPESH.pdf
+  const fullStudentName = [surname, firstName, fatherName].filter(Boolean).join("_").replace(/[^a-zA-Z0-9_]/g, "") || "Candidate";
+  const filename = `${formNo}_${fullStudentName}.pdf`;
 
   const html = renderPrintHtml(data);
-  const browser = await getBrowser();
-  const page = await browser.newPage();
   try {
-    await page.setContent(html, { waitUntil: "networkidle" });
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    try {
+      await page.setContent(html, { waitUntil: "networkidle" });
 
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      margin: { top: "0", bottom: "0", left: "0", right: "0" },
-      printBackground: true,
-      preferCSSPageSize: true,
-    });
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        margin: { top: "0", bottom: "0", left: "0", right: "0" },
+        printBackground: true,
+        preferCSSPageSize: true,
+      });
 
-    return new Response(new Uint8Array(pdfBuffer), {
+      return new Response(new Uint8Array(pdfBuffer), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${filename}"; filename*=${encodeURIComponent(filename)}`,
+        },
+      });
+    } finally {
+      await page.close();
+    }
+  } catch (pdfErr) {
+    console.error("PDF generation error, falling back to HTML stream:", pdfErr);
+    return new Response(html, {
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename.replace('.pdf', '.html')}"`,
       },
     });
-  } finally {
-    await page.close();
   }
 }

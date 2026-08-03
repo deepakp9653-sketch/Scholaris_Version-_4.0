@@ -29,6 +29,13 @@ function escDate(val: unknown): string {
   return esc(formatDate(val));
 }
 
+function formatPct(val: unknown): string {
+  if (val === null || val === undefined || val === "") return "";
+  const num = Number(val);
+  if (isNaN(num)) return String(val);
+  return (Math.round(num * 100) / 100).toFixed(2);
+}
+
 function formatAcademicYear(yearStartVal: unknown, yearEndVal: unknown) {
   let start = String(yearStartVal || "26").trim();
   if (start.length === 4) start = start.slice(2);
@@ -55,6 +62,32 @@ function formatQuota(quota: unknown): string {
   if (str === "TFWS") return "TFWS";
   if (str === "EWS") return "EWS";
   return str.replace(/_/g, " ");
+}
+
+function formatAffidavitDateParts(dateVal: unknown) {
+  const d = dateVal ? new Date(String(dateVal)) : new Date();
+  const valid = !isNaN(d.getTime());
+  const dateObj = valid ? d : new Date();
+
+  const dayNum = dateObj.getDate();
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const monthName = monthNames[dateObj.getMonth()];
+  const year = dateObj.getFullYear();
+
+  const getOrdinal = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
+  return {
+    dayOrdinal: getOrdinal(dayNum),
+    monthName,
+    year: String(year),
+  };
 }
 
 export interface MappedCategory {
@@ -255,14 +288,14 @@ function renderForm1(d: PrintFormData): string {
             <td><span class="val">${esc(f.sscMarksEnglishObtained)}</span></td>
             <td><span class="val">${esc(f.sscMarksMathsObtained)}</span></td>
             <td><span class="val">${esc(f.sscGrandTotalObtained)}</span></td>
-            <td><span class="val" style="font-weight:900">${esc(f.sscPercentage)}%</span></td>
+            <td><span class="val" style="font-weight:900">${f.sscPercentage ? esc(formatPct(f.sscPercentage)) + "%" : ""}</span></td>
           </tr>
           <tr>
             <td style="font-weight:bold">Out of</td>
             <td><span class="val">${esc(f.sscMarksEnglishOutOf)}</span></td>
             <td><span class="val">${esc(f.sscMarksMathsOutOf)}</span></td>
             <td><span class="val">${esc(f.sscGrandTotalOutOf)}</span></td>
-            <td>-</td>
+            <td><span class="val">100%</span></td>
           </tr>
         </tbody>
       </table>
@@ -368,11 +401,11 @@ function renderForm1(d: PrintFormData): string {
         <span class="form-label bold" style="margin-left:20px">b) Branch/Course at Diploma :</span>
         <span class="form-value">${esc(f.diplomaBranchCourse)}</span>
       </div>
-      <div class="form-row mt-8" style="align-items:center">
-        <span class="form-label bold" style="margin-left:20px">c) B.T.E Enrollment No.</span>
-        <span style="border:1.5px solid #000;padding:3px 12px;min-width:140px;display:inline-block;font-weight:900;font-size:13px;text-align:center">${esc(f.diplomaBteEnrollmentNo)}</span>
-        <span class="form-label bold" style="margin-left:20px">d) Diploma Year of Passing :</span>
-        <span style="border:1.5px solid #000;padding:3px 12px;min-width:100px;display:inline-block;font-weight:900;font-size:13px;text-align:center">${esc(f.diplomaYearOfPassing)}</span>
+      <div class="form-row mt-8" style="align-items:center;gap:12px;flex-wrap:nowrap">
+        <span class="form-label bold" style="margin-left:20px;white-space:nowrap">c) B.T.E Enrollment No. :</span>
+        <span style="border:1.5px solid #000;padding:0 8px;min-width:160px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:13px">${esc(f.diplomaBteEnrollmentNo)}</span>
+        <span class="form-label bold" style="margin-left:15px;white-space:nowrap">d) Diploma Year of Passing :</span>
+        <span style="border:1.5px solid #000;padding:0 8px;min-width:110px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:13px">${esc(f.diplomaYearOfPassing)}</span>
       </div>
     </div>
 
@@ -443,7 +476,7 @@ function renderForm1(d: PrintFormData): string {
       <div style="text-align:center">
         <div style="width:210px;height:60px;border:1.5px solid #000"></div>
         <div style="font-size:12px;margin-top:4px">(Signature of Parent / Guardian)</div>
-        <div style="font-size:11px;font-weight:bold;margin-top:2px">Mob: ${esc(s.parentsTelNo || s.mobileNo)}</div>
+        <div style="font-size:11px;font-weight:bold;margin-top:2px">Mob: ${esc(s.parentsTelNo || s.parentMobileNo || s.fatherMobileNo || s.guardianMobileNo || (d.form5 && d.form5.parentsTelNo) || s.mobileNo || "")}</div>
       </div>
       <div style="text-align:center">
         <div style="width:210px;height:60px;border:1.5px solid #000"></div>
@@ -651,7 +684,7 @@ function renderForm3(d: PrintFormData): string {
       <span class="form-label bold">1. Name of the Course to which Admission is sought:</span>
       <span class="form-value" style="font-weight:900">${esc(branch)}</span>
       <span class="form-label bold" style="margin-left:10px">
-        Year: ${['1st', '2nd', '3rd', '4th', '5th'].map(yr => yr === courseYear ? `<u><strong>${yr}</strong></u>` : yr).join(' / ')}
+        Year: ${['1st', '2nd', '3rd', '4th', '5th'].map(yr => (yr === "1st" || yr === courseYear) ? `<u><strong>${yr}</strong></u>` : yr).join(' / ')}
       </span>
     </div>
 
@@ -777,14 +810,14 @@ function renderForm3(d: PrintFormData): string {
       </table>
 
       <div style="font-weight:bold;font-size:11.5px;margin-top:6px">5. Please specify Educational gap details if any</div>
-      <table class="form-table" style="margin-top:3px">
+      <table class="form-table" style="margin-top:3px;width:100%">
         <thead><tr><th>Last Examination Name</th><th>Seat No.</th><th>Month &amp; Year of Passing</th><th>Percentage</th><th>Class/Grade</th></tr></thead>
-        <tbody><tr>
-          <td><span class="val">${esc(f.gapLastExamName || "")}</span></td>
-          <td><span class="val">${esc(f.gapSeatNo || "")}</span></td>
-          <td><span class="val">${esc(f.gapMonthYearPassing || "")}</span></td>
-          <td><span class="val">${f.gapPercentage ? esc(f.gapPercentage) + "%" : ""}</span></td>
-          <td><span class="val">${esc(f.gapClassGrade || "")}</span></td>
+        <tbody><tr style="height:26px">
+          <td style="height:26px;min-height:26px">${f.gapLastExamName ? `<span class="val">${esc(f.gapLastExamName)}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${f.gapSeatNo ? `<span class="val">${esc(f.gapSeatNo)}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${f.gapMonthYearPassing ? `<span class="val">${esc(f.gapMonthYearPassing)}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${f.gapPercentage ? `<span class="val">${esc(f.gapPercentage)}%</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${f.gapClassGrade ? `<span class="val">${esc(f.gapClassGrade)}</span>` : "&nbsp;"}</td>
         </tr></tbody>
       </table>
     </div>
@@ -886,7 +919,6 @@ function renderForm3(d: PrintFormData): string {
         <p style="margin-bottom:5px"><strong>4.</strong> If any affiliated College admits any student not eligible for Under-Graduate or Post-Graduate Courses of this University and allows him/her to fill in the Examination Form, a penalty of Rs.5,000/- per student shall be imposed on the College and performance of the examination of such student shall be cancelled.</p>
         <p style="margin-bottom:5px"><strong>5.</strong> The same rule applies to the University Department, Centres/Schools. The Head of University department/Director of Recognise Institute will have to pay penalty as above in case not eligible candidate is allowed to fill in the University Examination form.</p>
       </div>
-    </div>
   </div>`;
 
   return page4 + page5;
@@ -904,11 +936,7 @@ function renderForm4(d: PrintFormData): string {
   const parentName = v(s.fullNameFather || s.fatherName || f.sonDaughterOf || "");
   const parentDisplay = parentName ? `Mr./Mrs./Ms. ${parentName}` : "Mr./Mrs./Ms................................................................";
 
-  const declDate = f.declaredDay ? new Date(`${f.declaredYear || new Date().getFullYear()}-${f.declaredMonth || "01"}-${f.declaredDay}`) : new Date(d.record.createdAt || Date.now());
-  const declDay = String(declDate.getDate()).padStart(2, "0");
-  const declMonth = declDate.toLocaleString("en-US", { month: "2-digit" });
-  const declYear = String(declDate.getFullYear());
-  const declFullDate = `${declDay}/${declMonth}/${declYear}`;
+  const affDateParts = formatAffidavitDateParts(f.declaredDay ? `${f.declaredYear || new Date().getFullYear()}-${f.declaredMonth || "01"}-${f.declaredDay}` : d.record.createdAt || Date.now());
 
   return `<div class="page-container">
     <!-- Header with Larger Title -->
@@ -922,8 +950,8 @@ function renderForm4(d: PrintFormData): string {
     <!-- Clause 1 with Underlined College Name and Larger Body Text -->
     <div class="affidavit-clause" style="font-size:13.5px;line-height:1.75">
       <strong>1)</strong> I, <u style="padding:0 4px"><strong>${esc(studentName)}</strong></u><br/>
-      (full name of student with admission/registration/enrolment number)<br/>
-      S/o D/o <u style="padding:0 4px"><strong>${esc(parentDisplay)}</strong></u>, having been admitted to (name of the institution) <u><strong>Bhivarabai Sawant College of Engineering &amp; Research, Narhe, Pune-41</strong></u>, have received a copy of the UGC Regulations on Curbing the menace of Ragging in Higher Educational Institutions, 2009, (hereinafter called the "Regulations") carefully read and fully understood the provisions contained in the said Regulations.-
+      <span style="font-size:11.5px;color:#333">(full name of student with admission/registration/enrolment number)</span><br/>
+      S/o D/o <u style="padding:0 4px"><strong>${esc(parentDisplay)}</strong></u>, having been admitted to (name of the institution) <u style="padding:0 4px"><strong>Bhivarabai Sawant College of Engineering &amp; Research, Narhe, Pune-41</strong></u>, have received a copy of the UGC Regulations on Curbing the menace of Ragging in Higher Educational Institutions, 2009, (hereinafter called the "Regulations") carefully read and fully understood the provisions contained in the said Regulations.-
     </div>
 
     <!-- Clause 2 -->
@@ -939,9 +967,9 @@ function renderForm4(d: PrintFormData): string {
     <!-- Clause 4 -->
     <div class="affidavit-clause" style="font-size:13.5px;line-height:1.75">
       <strong>4)</strong> I hereby solemnly aver and undertake that
-      <div style="padding-left:20px;margin-top:4px">
-        <strong>a)</strong> I will not indulge in any behaviour or act that may be constituted as ragging under clause 3 of the Regulations.<br/>
-        <strong>b)</strong> I will not participate in or abet or propagate through any act of commission or omission that may be constituted as ragging under clause 3 of the Regulations.
+      <div style="margin-left:20px;margin-top:4px">
+        a) I will not indulge in any behaviour or act that may be constituted as ragging under clause 3 of the Regulations.<br/>
+        b) I will not participate in or abet or propagate through any act of commission or omission that may be constituted as ragging under clause 3 of the Regulations.
       </div>
     </div>
 
@@ -958,12 +986,11 @@ function renderForm4(d: PrintFormData): string {
     <!-- Declaration Date Fields Filled -->
     <div class="form-row" style="margin-top:16px;justify-content:flex-start;font-size:13px">
       <span class="form-label">Declared this</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:90px;text-align:center">${declFullDate}</span>
-      <span class="form-label" style="margin-left:8px">day of</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;min-width:110px;text-align:center"></span>
-      <span class="form-label" style="margin-left:8px">month of</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;min-width:110px;text-align:center"></span>
-      <span class="form-label" style="margin-left:8px">year,</span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:60px;text-align:center">${affDateParts.dayOrdinal}</span>
+      <span class="form-label" style="margin-left:6px">day of</span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:90px;text-align:center">${affDateParts.monthName}</span>
+      <span class="form-label" style="margin-left:6px">Month of Year</span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:70px;text-align:center">${affDateParts.year}</span>,
     </div>
 
     <!-- Signature Pulled Down for Room to Sign -->
@@ -983,14 +1010,13 @@ function renderForm4(d: PrintFormData): string {
 
     <div class="form-row" style="margin-top:14px;font-size:13px">
       <span class="form-label">Verified at Place</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:100px;text-align:center">${esc(f.verifiedAtPlace || "PUNE")}</span>
-      <span class="form-label" style="margin-left:10px">on this</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;min-width:100px;text-align:center"></span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:90px;text-align:center">${esc(f.verifiedAtPlace || "PUNE")}</span>
+      <span class="form-label" style="margin-left:8px">on this</span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:60px;text-align:center">${affDateParts.dayOrdinal}</span>
       <span class="form-label" style="margin-left:6px">day of</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;min-width:100px;text-align:center"></span>
-      <span class="form-label" style="margin-left:6px">month of</span>
-      <span style="border-bottom:1.5px solid #000;padding:0 8px;min-width:100px;text-align:center"></span>
-      <span class="form-label" style="margin-left:6px">year,</span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:90px;text-align:center">${affDateParts.monthName}</span>
+      <span class="form-label" style="margin-left:6px">Month of Year</span>
+      <span style="border-bottom:1.5px solid #000;padding:0 8px;font-weight:bold;min-width:70px;text-align:center">${affDateParts.year}</span>,
     </div>
 
     <div style="text-align:right;margin-top:35px">
@@ -1025,207 +1051,219 @@ function renderForm5(d: PrintFormData): string {
   const localPin = v(s.correspondencePin || "");
 
   const classYear = String(f.yearLevel || "F.E.").toUpperCase();
-  const isDiploma = String(f.yearLevel) === "DSY" || String(s.admissionType) === "DSE";
-  const diplomaType = isDiploma ? "DSY" : "FY";
+  const hasDiplomaData = Boolean(
+    (d.form1 && (d.form1.diplomaBranchCourse || d.form1.diplomaBteEnrollmentNo || d.form1.diplomaYearOfPassing)) ||
+    String(s.admissionType) === "DSE" ||
+    String(s.admissionType) === "DIPLOMA" ||
+    String(f.yearLevel) === "DSY"
+  );
+  const diplomaType = hasDiplomaData ? (String(f.yearLevel) === "DSY" || String(s.admissionType) === "DSE" ? "DSY" : "FY") : "";
   const rawCat = String(f.castCategory || s.category || d.form1.admissionCategory || "");
   const catInfo = parseCategory(rawCat);
 
   // Page 7 — Library Membership Form (Exact Replica of New Image 3)
-  const page7 = `<div class="page-container" style="border:3px double #000;padding:10mm">
-    <!-- Center TSSM Logo Top -->
-    <div style="text-align:center;margin-bottom:4px">
-      <img src="/tssm-logo.png" alt="TSSM Logo" style="height:55px;object-fit:contain;margin:0 auto 2px;display:block"/>
-      <div style="font-size:13px;font-weight:bold">The Shetkari Shikshan Mandal's</div>
-      <div style="font-size:17px;font-weight:bold">Bhivarabai Sawant College of Engineering &amp; Research,</div>
-      <div style="font-size:12px;font-weight:bold">Narhe, Pune – 41</div>
-      <div style="font-size:15px;font-weight:bold;letter-spacing:0.5px;margin-top:3px">
-        LIBRARY MEMBERSHIP FORM – STUDENT
-      </div>
-    </div>
-
-    <div style="border-bottom:1.5px dashed #000;margin:6px 0 10px"></div>
-
-    <!-- 1. Member Name -->
-    <div class="form-row spaced">
-      <span class="form-label bold" style="min-width:170px">1. Name of the Member:</span>
-      <span class="form-value full" style="font-weight:900">${esc(fullName)}</span>
-      <div style="font-size:10.5px;color:#000;width:100%;display:flex;justify-content:space-around;margin-top:1px">
-        <span>(In CAPITAL)</span><span>(Surname)</span><span>(First name)</span><span>(Father name)</span>
-      </div>
-    </div>
-
-    <!-- 2, 3, 4 -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">2. Branch / Department:</span>
-      <span class="form-value medium">${esc(branch)}</span>
-      <span class="form-label bold" style="margin-left:10px">3. Year: F.E. / S.E. /M.E./Ph.D.</span>
-      <span style="font-weight:bold;margin-left:4px"><u><strong>${esc(classYear)}</strong></u></span>
-      <span class="form-label bold" style="margin-left:10px">4. Diploma (FY /DSY)</span>
-      <span style="font-weight:bold;margin-left:4px"><u><strong>${diplomaType}</strong></u></span>
-    </div>
-
-    <!-- 5. Permanent Address -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">5. Permanent Address:</span>
-      <span class="form-value">${esc(permanentAddr)}</span>
-    </div>
-    <div class="form-row mt-4">
-      <span class="form-value" style="flex:1"></span>
-      <span class="form-label bold" style="margin-left:15px">City:</span>
-      <span class="form-value short">${esc(f.permanentCity || "PUNE")}</span>
-      <span class="form-label bold" style="margin-left:20px">Pin Code:</span>
-      <span class="form-value short">${esc(permanentPin)}</span>
-    </div>
-
-    <!-- 6. Local Address -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">6. Local Address:</span>
-      <span class="form-value">${esc(localAddr)}</span>
-    </div>
-    <div class="form-row mt-4">
-      <span class="form-value" style="flex:1"></span>
-      <span class="form-label bold" style="margin-left:15px">City:</span>
-      <span class="form-value short">PUNE</span>
-      <span class="form-label bold" style="margin-left:20px">Pin Code:</span>
-      <span class="form-value short">${esc(localPin)}</span>
-    </div>
-
-    <!-- 7 -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">7. E-Mail ID:</span>
-      <span class="form-value lowercase">${esc(String(s.email || "").toLowerCase())}</span>
-    </div>
-
-    <!-- 8, 9, 10 -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">8. Date of Birth:</span>
-      <span style="font-weight:bold;margin:0 6px">${dobDisplay}</span>
-      <span class="form-label bold" style="margin-left:15px">9. Gender: Male / Female</span>
-      <span style="font-weight:bold;margin:0 4px"><u><strong>${esc(f.gender || s.gender || "")}</strong></u></span>
-      <span class="form-label bold" style="margin-left:15px">10. Blood Group:</span>
-      <span style="font-weight:bold;margin:0 6px">${esc(f.bloodGroup || s.bloodGroup || "")}</span>
-    </div>
-
-    <!-- 11 -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">11. Student Mobile No:</span>
-      <span class="form-value medium">${esc(f.studentMobileNo || s.mobileNo || "")}</span>
-      <span class="form-label bold" style="margin-left:15px">Parents Tel. No:</span>
-      <span class="form-value medium">${esc(s.parentMobileNo || s.correspondenceMobile || "")}</span>
-    </div>
-
-    <!-- 12. Cast Category Table with Tick (Matching New Image 3) -->
-    <div style="margin-top:8px">
-      <div class="form-label bold">12. Cast Category:</div>
-      <table class="form-table" style="margin:4px 0">
-        <thead><tr>
-          <th>Open</th><th>SC</th><th>ST</th><th>VJ</th><th>NT 1</th><th>NT 2</th><th>NT 3</th><th>SBC</th><th>Other</th>
-        </tr></thead>
-        <tbody><tr>
-          <td>${catInfo.code === "OPEN" ? "✓" : ""}</td>
-          <td>${catInfo.code === "SC" ? "✓" : ""}</td>
-          <td>${catInfo.code === "ST" ? "✓" : ""}</td>
-          <td>${catInfo.isNTA ? "✓" : ""}</td>
-          <td>${catInfo.isNTB ? "✓" : ""}</td>
-          <td>${catInfo.isNTC ? "✓" : ""}</td>
-          <td>${catInfo.isNTD ? "✓" : ""}</td>
-          <td>${catInfo.code === "SBC" ? "✓" : ""}</td>
-          <td>${!catInfo.isNTA && !catInfo.isNTB && !catInfo.isNTC && !catInfo.isNTD && catInfo.code !== "OPEN" && catInfo.code !== "SC" && catInfo.code !== "ST" && catInfo.code !== "SBC" ? "✓" : ""}</td>
-        </tr></tbody>
-      </table>
-    </div>
-
-    <!-- 13 & 14 -->
-    <div class="form-row mt-8">
-      <span class="form-label bold">13. Students Admission Receipt No.:</span>
-      <span class="form-value medium">${esc(f.admissionReceiptNo || "")}</span>
-      <span class="form-label bold" style="margin-left:20px">14. Admission Date:</span>
-      <span class="form-value short">${escDate(f.admissionDate || d.record.createdAt)}</span>
-    </div>
-
-    <!-- Center Photo Box & Sign Box Below (Matching Image 3) -->
-    <div style="margin:16px auto;text-align:center">
-      <div style="width:160px;height:180px;border:2px solid #000;margin:0 auto;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:bold;font-size:12.5px;padding:10px">
-        Passport size Colour Photograph
-      </div>
-      <div style="width:160px;height:42px;border:2px solid #000;margin:8px auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:11px">
-        <span>Sign.</span>
-        <span style="font-size:10px">Mob: ${esc(f.studentMobileNo || s.mobileNo || "")}</span>
-      </div>
-    </div>
-
-    <!-- Bottom Row -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px">
-      <div class="form-row">
-        <span class="form-label bold">Date:</span>
-        <span class="form-value short">${escDate(f.dateField || new Date())}</span>
-      </div>
-      <div style="font-weight:bold;font-size:12.5px">
-        Admin. Officer / Accountant Sign. : ___________________
-      </div>
-    </div>
-
-    <div style="border-bottom:1.5px dashed #000;margin:10px 0"></div>
-
-    <!-- Library Use Box -->
-    <div style="padding:4px 0">
-      <div style="text-align:center;font-weight:bold;font-size:13px;margin-bottom:4px">*FOR LIBRARY USE ONLY*</div>
-      <div class="form-row">
-        <span class="form-label bold">(Library Membership / I-Card No.:</span>
-        <span class="form-value medium" style="font-weight:900"></span>
-        <span>)</span>
-      </div>
-      <div class="form-row mt-4" style="justify-content:space-between;align-items:flex-end">
-        <div>
-          <span class="form-label bold">::REMARK</span>
-          <span class="form-value" style="width:280px"></span>
+  const page7 = `<div class="page-container" style="padding:8mm 10mm">
+    <div style="border:2px solid #000;padding:8mm 10mm;box-sizing:border-box;min-height:275mm">
+      <!-- Center TSSM Logo Top -->
+      <div style="text-align:center;margin-bottom:4px">
+        <img src="/tssm-logo.png" alt="TSSM Logo" style="height:55px;object-fit:contain;margin:0 auto 2px;display:block"/>
+        <div style="font-size:13px;font-weight:bold">The Shetkari Shikshan Mandal's</div>
+        <div style="font-size:17px;font-weight:bold">Bhivarabai Sawant College of Engineering &amp; Research,</div>
+        <div style="font-size:12px;font-weight:bold">Narhe, Pune – 41</div>
+        <div style="font-size:15px;font-weight:bold;letter-spacing:0.5px;margin-top:3px">
+          LIBRARY MEMBERSHIP FORM – STUDENT
         </div>
-        <div style="font-weight:bold;font-size:12.5px">Librarian Sign. : ___________________</div>
+      </div>
+
+      <div style="border-bottom:1.5px dashed #000;margin:6px 0 10px"></div>
+
+      <!-- 1. Member Name -->
+      <div class="form-row spaced">
+        <span class="form-label bold" style="min-width:170px">1. Name of the Member:</span>
+        <span class="form-value full" style="font-weight:900">${esc(fullName)}</span>
+        <div style="font-size:10.5px;color:#000;width:100%;display:flex;justify-content:space-around;margin-top:1px">
+          <span>(In CAPITAL)</span><span>(Surname)</span><span>(First name)</span><span>(Father name)</span>
+        </div>
+      </div>
+
+      <!-- 2, 3, 4 -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">2. Branch / Department:</span>
+        <span class="form-value medium">${esc(branch)}</span>
+        <span class="form-label bold" style="margin-left:10px">3. Year: F.E. / S.E. /M.E./Ph.D.</span>
+        <span style="font-weight:bold;margin-left:4px"><u><strong>${esc(classYear)}</strong></u></span>
+        <span class="form-label bold" style="margin-left:10px">4. Diploma (FY /DSY)</span>
+        <span style="font-weight:bold;margin-left:4px">${diplomaType ? `<u><strong>${diplomaType}</strong></u>` : ""}</span>
+      </div>
+
+      <!-- 5. Permanent Address -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">5. Permanent Address:</span>
+        <span class="form-value">${esc(permanentAddr)}</span>
+      </div>
+      <div class="form-row mt-4">
+        <span class="form-value" style="flex:1"></span>
+        <span class="form-label bold" style="margin-left:15px">City:</span>
+        <span class="form-value short">${esc(f.permanentCity || "PUNE")}</span>
+        <span class="form-label bold" style="margin-left:20px">Pin Code:</span>
+        <span class="form-value short">${esc(permanentPin)}</span>
+      </div>
+
+      <!-- 6. Local Address -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">6. Local Address:</span>
+        <span class="form-value">${esc(localAddr)}</span>
+      </div>
+      <div class="form-row mt-4">
+        <span class="form-value" style="flex:1"></span>
+        <span class="form-label bold" style="margin-left:15px">City:</span>
+        <span class="form-value short">PUNE</span>
+        <span class="form-label bold" style="margin-left:20px">Pin Code:</span>
+        <span class="form-value short">${esc(localPin)}</span>
+      </div>
+
+      <!-- 7 -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">7. E-Mail ID:</span>
+        <span class="form-value lowercase">${esc(String(s.email || "").toLowerCase())}</span>
+      </div>
+
+      <!-- 8, 9, 10 -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">8. Date of Birth:</span>
+        <span style="font-weight:bold;margin:0 6px">${dobDisplay}</span>
+        <span class="form-label bold" style="margin-left:15px">9. Gender: Male / Female</span>
+        <span style="font-weight:bold;margin:0 4px"><u><strong>${esc(f.gender || s.gender || "")}</strong></u></span>
+        <span class="form-label bold" style="margin-left:15px">10. Blood Group:</span>
+        <span style="font-weight:bold;margin:0 6px">${esc(f.bloodGroup || s.bloodGroup || "")}</span>
+      </div>
+
+      <!-- 11 -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">11. Student Mobile No:</span>
+        <span class="form-value medium">${esc(f.studentMobileNo || s.mobileNo || "")}</span>
+        <span class="form-label bold" style="margin-left:15px">Parents Tel. No:</span>
+        <span class="form-value medium">${esc(s.parentMobileNo || s.correspondenceMobile || "")}</span>
+      </div>
+
+      <!-- 12. Cast Category Table with Tick (Matching New Image 3) -->
+      <div style="margin-top:8px">
+        <div class="form-label bold">12. Cast Category:</div>
+        <table class="form-table" style="margin:4px 0">
+          <thead><tr>
+            <th>Open</th><th>SC</th><th>ST</th><th>VJ</th><th>NT 1</th><th>NT 2</th><th>NT 3</th><th>SBC</th><th>Other</th>
+          </tr></thead>
+          <tbody><tr>
+            <td>${catInfo.code === "OPEN" ? "✓" : ""}</td>
+            <td>${catInfo.code === "SC" ? "✓" : ""}</td>
+            <td>${catInfo.code === "ST" ? "✓" : ""}</td>
+            <td>${catInfo.isNTA ? "✓" : ""}</td>
+            <td>${catInfo.isNTB ? "✓" : ""}</td>
+            <td>${catInfo.isNTC ? "✓" : ""}</td>
+            <td>${catInfo.isNTD ? "✓" : ""}</td>
+            <td>${catInfo.code === "SBC" ? "✓" : ""}</td>
+            <td>${!catInfo.isNTA && !catInfo.isNTB && !catInfo.isNTC && !catInfo.isNTD && catInfo.code !== "OPEN" && catInfo.code !== "SC" && catInfo.code !== "ST" && catInfo.code !== "SBC" ? "✓" : ""}</td>
+          </tr></tbody>
+        </table>
+      </div>
+
+      <!-- 13 & 14 -->
+      <div class="form-row mt-8">
+        <span class="form-label bold">13. Students Admission Receipt No.:</span>
+        <span class="form-value medium">${esc(f.admissionReceiptNo || "")}</span>
+        <span class="form-label bold" style="margin-left:20px">14. Admission Date:</span>
+        <span class="form-value short">${escDate(f.admissionDate || d.record.createdAt)}</span>
+      </div>
+
+      <!-- Center Photo Box & Sign Box Below (Matching Image 3) -->
+      <div style="margin:16px auto;text-align:center">
+        <div style="width:160px;height:180px;border:2px solid #000;margin:0 auto;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:bold;font-size:12.5px;padding:10px">
+          Passport size Colour Photograph
+        </div>
+        <div style="width:160px;height:42px;border:2px solid #000;margin:8px auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:11px">
+          <span>Sign.</span>
+          <span style="font-size:10px">Mob: ${esc(f.studentMobileNo || s.mobileNo || "")}</span>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px">
+        <div class="form-row">
+          <span class="form-label bold">Date:</span>
+          <span class="form-value short">${escDate(f.dateField || new Date())}</span>
+        </div>
+        <div style="font-weight:bold;font-size:12.5px">
+          Admin. Officer / Accountant Sign. : ___________________
+        </div>
+      </div>
+
+      <div style="border-bottom:1.5px dashed #000;margin:10px 0"></div>
+
+      <!-- Library Use Box -->
+      <div style="padding:4px 0">
+        <div style="text-align:center;font-weight:bold;font-size:13px;margin-bottom:4px">*FOR LIBRARY USE ONLY*</div>
+        <div class="form-row">
+          <span class="form-label bold">(Library Membership / I-Card No.:</span>
+          <span class="form-value medium" style="font-weight:900"></span>
+          <span>)</span>
+        </div>
+        <div class="form-row mt-4" style="justify-content:space-between;align-items:flex-end">
+          <div>
+            <span class="form-label bold">::REMARK</span>
+            <span class="form-value" style="width:280px"></span>
+          </div>
+          <div style="font-weight:bold;font-size:12.5px">Librarian Sign. : ___________________</div>
+        </div>
       </div>
     </div>
   </div>`;
 
   // Page 8 — Library Rules & Regulations (Matching Reference Image 2)
-  const page8 = `<div class="page-container" style="border:3px double #000;padding:10mm;display:flex;flex-direction:column;justify-content:space-between">
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
-      <div>
-        <div style="text-align:center;margin-bottom:16px">
-          <div style="font-size:14px;font-weight:bold">The Shetkari Shikshan Mandal's</div>
-          <div style="font-size:18px;font-weight:bold">Bhivarabai Sawant College of Engineering &amp; Research,</div>
-          <div style="font-size:13px;font-weight:bold">Narhe, Pune – 41</div>
-          <div style="font-size:16px;font-weight:bold;text-decoration:underline;margin-top:8px">
-            LIBRARY RULES &amp; REGULATIONS FOR STUDENTS
+  const page8 = `<div class="page-container" style="padding:8mm 10mm">
+    <div style="border:2px solid #000;padding:8mm 10mm;box-sizing:border-box;min-height:275mm;display:flex;flex-direction:column;justify-content:space-between">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div style="text-align:center;margin-bottom:18px">
+            <div style="font-size:15px;font-weight:bold">The Shetkari Shikshan Mandal's</div>
+            <div style="font-size:19.5px;font-weight:bold">Bhivarabai Sawant College of Engineering &amp; Research,</div>
+            <div style="font-size:14px;font-weight:bold">Narhe, Pune – 41</div>
+            <div style="font-size:17.5px;font-weight:bold;text-decoration:underline;margin-top:10px">
+              LIBRARY RULES &amp; REGULATIONS FOR STUDENTS
+            </div>
+          </div>
+
+          <div style="font-size:14.5px;line-height:1.7;color:#000;font-weight:500;margin-top:12px">
+            <div class="rule-item" style="margin-bottom:7px"><strong>1.</strong> The library is primarily intended for the use by students and staff of this college.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>2.</strong> All the students are expected to maintain silence witile in the library.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>3.</strong> Personal belongings are not allowed inside stack room, reference section and digital library.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>4.</strong> Always consult the library staff for number of books can be issued on library card He / She will be responsible for the books borrowed on his/her card.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>5.</strong> Books will be issued only on production of borrower card. Card is not transferable. Books will be issued only to cardholder and not through anybody else.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>6.</strong> Students are not permitted to sit in library during their lecture and practical timing</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>7.</strong> Students should place the demand slips up to 4.00 pm and collect the books on same day.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>8.</strong> Books will be issued for one week (UG Student) &amp; two week (Poly and PG Student) at first instance. If the same book is required for longer period fresh demand slip will be filled up for renewal before the due date of return. The book may then reissue for another week if there is no demand from other students for the same book.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>9.</strong> A Fine of Rs. 1/-Per day and Per Book will be charged on expiry of return date.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>10.</strong> Current issues of journals/Magazines will not be issued to students outside the library. Back issues of certain Journals/Magazines may be issued for 3 days.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>11.</strong> Borrowers are requested to take every care of book &amp; will not write anything on the book.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>12.</strong> If during period of issue to a borrower any book is lost or damaged rendering it unserviceable, library staff can recover from the borrower a sum equal to the cost of obtaining another copy of book.</div>
+            <div class="rule-item" style="margin-bottom:7px"><strong>13.</strong> In case of loss of library card duplicate library card can be issued but only once. There after no guarantee of issuing another library card &amp; student wouldn't have any objection.</div>
           </div>
         </div>
 
-        <div style="font-size:13.5px;line-height:1.65;color:#000">
-          <div class="rule-item"><strong>1.</strong> The library is primarily intended for the use by students and staff of this college.</div>
-          <div class="rule-item"><strong>2.</strong> All the students are expected to maintain silence witile in the library.</div>
-          <div class="rule-item"><strong>3.</strong> Personal belongings are not allowed inside stack room, reference section and digital library.</div>
-          <div class="rule-item"><strong>4.</strong> Always consult the library staff for number of books can be issued on library card He / She will be responsible for the books borrowed on his/her card.</div>
-          <div class="rule-item"><strong>4.</strong> Books will be issued only on production of borrower card. Card is not transferable. Books will be issued only to cardholder and not through anybody else.</div>
-          <div class="rule-item"><strong>6.</strong> Students are not permitted to sit in library during their lecture and practical timing</div>
-          <div class="rule-item"><strong>7.</strong> Students should place the demand slips up to 4.00 pm and collect the books on same day.</div>
-          <div class="rule-item"><strong>8.</strong> Books will be issued for one week (UG Student) &amp; two week (Poly and PG Student) at first instance. If the same book is required for longer period fresh demand slip will be filled up for renewal before the due date of return. The book may then reissue for another week if there is no demand from other students for the same book.</div>
-          <div class="rule-item"><strong>9.</strong> A Fine of Rs. 1/-Per day and Per Book will be charged on expiry of return date.</div>
-          <div class="rule-item"><strong>10.</strong> Current issues of journals/Magazines will not be issued to students outside the library. Back issues of certain Journals/Magazines may be issued for 3 days.</div>
-          <div class="rule-item"><strong>11.</strong> Borrowers are requested to take every care of book &amp; will not write anything on the book.</div>
-          <div class="rule-item"><strong>12.</strong> If during period of issue to a borrower any book is lost or damaged rendering it unserviceable, library staff can recover from the borrower a sum equal to the cost of obtaining another copy of book.</div>
-          <div class="rule-item"><strong>13.</strong> In case of loss of library card duplicate library card can be issued but only once. There after no guarantee of issuing another library card &amp; student wouldn't have any objection.</div>
-        </div>
-      </div>
+        <div>
+          <div style="margin-top:24px;font-weight:bold;text-align:center;font-size:14.5px;line-height:1.6">
+            I have read the rules and regulations and ready to follow the same.<br/>
+            If any student lost the I-card then I-card will reissue with Rs. 200/- fine.
+          </div>
 
-      <div>
-        <div style="margin-top:24px;font-weight:bold;text-align:center;font-size:14px;line-height:1.55">
-          I have read the rules and regulations and ready to follow the same.<br/>
-          If any student lost the I-card then I-card will reissue with Rs. 200/- fine.
-        </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px">
-          <span class="form-label bold" style="font-size:13.5px">Date: ________________________</span>
-          <div style="text-align:right">
-            <span class="form-label bold" style="font-size:13.5px">Signature:________________________</span><br/>
-            <span style="font-size:11px;font-weight:bold">Mob: ${esc(s.mobileNo)}</span>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px">
+            <div class="form-row" style="align-items:baseline;margin-bottom:0">
+              <span class="form-label bold" style="font-size:14px">Date:</span>
+              <span class="form-value short" style="font-size:14px;font-weight:900">${escDate(f.dateField || d.record.createdAt || new Date())}</span>
+            </div>
+            <div style="text-align:right">
+              <span class="form-label bold" style="font-size:14px">Signature:________________________</span><br/>
+              <span style="font-size:11.5px;font-weight:bold">Mob: ${esc(s.mobileNo)}</span>
+            </div>
           </div>
         </div>
       </div>

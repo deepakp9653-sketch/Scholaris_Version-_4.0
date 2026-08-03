@@ -52,12 +52,6 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
 
   // 3. H.S.C. PCM Total Auto-calculation
   useEffect(() => {
-    setValue("hscPhysicsOutOf", 100);
-    setValue("hscChemistryOutOf", 100);
-    setValue("hscMathsOutOf", 100);
-    setValue("hscPcmTotalOutOf", 300);
-    setValue("hscGrandTotalOutOf", 600);
-
     const pObt = Number(hscPhys) || 0;
     const cObt = Number(hscChem) || 0;
     const mObt = Number(hscMath) || 0;
@@ -215,7 +209,13 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
               Email Address <span className="text-red-500 font-bold">*</span>
               <AutoFillBadge visible={autoFilledFields.has("email")} />
             </Label>
-            <Input type="email" {...register("email")} placeholder="student@email.com" />
+            <Input
+              type="email"
+              {...register("email")}
+              placeholder="student@email.com"
+              className="lowercase"
+              onChange={(e) => setValue("email", e.target.value.toLowerCase())}
+            />
           </div>
 
           {/* Aadhar No - Numeric only, max 12 digits */}

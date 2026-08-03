@@ -94,7 +94,15 @@ export function Form5Step({ form, autoFilledFields }: Form5StepProps) {
           <CardTitle className="text-base">Personal Details</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2"><Label>Email <AutoFillBadge visible={autoFilledFields.has("email")} /></Label><Input type="email" {...register("email")} /></div>
+          <div className="space-y-2">
+            <Label>Email <AutoFillBadge visible={autoFilledFields.has("email")} /></Label>
+            <Input
+              type="email"
+              {...register("email")}
+              className="lowercase"
+              onChange={(e) => setValue("email", e.target.value.toLowerCase())}
+            />
+          </div>
           <div className="space-y-2"><Label>Date of Birth <AutoFillBadge visible={autoFilledFields.has("dateOfBirth")} /></Label><Input type="date" {...register("dateOfBirth")} /></div>
           <div className="space-y-2">
             <Label>Gender <AutoFillBadge visible={autoFilledFields.has("gender")} /></Label>

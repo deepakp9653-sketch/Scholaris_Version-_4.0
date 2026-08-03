@@ -58,9 +58,10 @@ export const PRINT_STYLES = `
     white-space: nowrap;
     margin-right: 4px;
     color: #000;
+    font-weight: normal;
   }
   .form-label.bold {
-    font-weight: bold;
+    font-weight: normal;
   }
 
   /* ---- Field Values (printed readonly) ---- */

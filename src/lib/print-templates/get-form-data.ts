@@ -42,7 +42,7 @@ export async function getPrintFormData(recordId: string): Promise<PrintFormData 
   const sequenceNo = index >= 0 ? index + 1 : 1;
   const formNumberStr = String(sequenceNo).padStart(3, "0");
 
-  const student = {
+  const student: Record<string, unknown> = {
     ...(record.studentProfile as Record<string, unknown> ?? {}),
     serialNumber: formNumberStr,
     formNumber: formNumberStr,

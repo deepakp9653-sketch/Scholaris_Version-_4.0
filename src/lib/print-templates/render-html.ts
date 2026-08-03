@@ -405,10 +405,12 @@ function renderForm1(d: PrintFormData): string {
       <div style="text-align:center">
         <div style="width:210px;height:60px;border:1.5px solid #000"></div>
         <div style="font-size:12px;margin-top:4px">(Signature of Parent / Guardian)</div>
+        <div style="font-size:11px;font-weight:bold;margin-top:2px">Mob: ${esc(s.parentsTelNo || s.mobileNo)}</div>
       </div>
       <div style="text-align:center">
         <div style="width:210px;height:60px;border:1.5px solid #000"></div>
         <div style="font-size:12px;margin-top:4px">(Signature of Student)</div>
+        <div style="font-size:11px;font-weight:bold;margin-top:2px">Mob: ${esc(s.mobileNo)}</div>
       </div>
     </div>
 
@@ -542,7 +544,10 @@ function renderForm2(d: PrintFormData): string {
 
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px">
       <div class="signature-line">Staff Sign</div>
-      <div class="signature-line">Student Sign</div>
+      <div class="signature-line" style="text-align:right">
+        Student Sign<br/>
+        <span style="font-size:11px;font-weight:bold">Mob: ${esc(s.mobileNo)}</span>
+      </div>
     </div>
 
     <div class="form-row" style="margin-top:12px;justify-content:flex-start">
@@ -756,7 +761,8 @@ function renderForm3(d: PrintFormData): string {
     </div>
 
     <div style="text-align:right;margin-top:14px;font-weight:bold;font-size:13px">
-      Signature of Candidate
+      Signature of Candidate<br/>
+      <span style="font-size:11px;font-weight:bold">Mob: ${esc(s.mobileNo)}</span>
     </div>
   </div>`;
 
@@ -925,7 +931,8 @@ function renderForm4(d: PrintFormData): string {
     <!-- Signature Pulled Down for Room to Sign -->
     <div style="text-align:right;margin-top:40px">
       <div class="signature-line" style="margin-left:auto">Signature of deponent</div>
-      <div style="font-size:13px;font-weight:bold;margin-top:6px">Name....................................</div>
+      <div style="font-size:13px;font-weight:bold;margin-top:6px">Name: ${esc(studentName)}</div>
+      <div style="font-size:11px;font-weight:bold;margin-top:2px">Mob: ${esc(s.mobileNo)}</div>
     </div>
 
     <!-- Verification Section -->
@@ -950,6 +957,7 @@ function renderForm4(d: PrintFormData): string {
 
     <div style="text-align:right;margin-top:35px">
       <div class="signature-line" style="margin-left:auto">Signature of deponent</div>
+      <div style="font-size:11px;font-weight:bold;margin-top:2px">Mob: ${esc(s.mobileNo)}</div>
     </div>
 
     <div style="margin-top:28px;font-size:12.5px;line-height:1.5">
@@ -1101,8 +1109,9 @@ function renderForm5(d: PrintFormData): string {
       <div style="width:160px;height:180px;border:2px solid #000;margin:0 auto;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:bold;font-size:12.5px;padding:10px">
         Passport size Colour Photograph
       </div>
-      <div style="width:160px;height:42px;border:2px solid #000;margin:8px auto 0;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12.5px">
-        Sign.
+      <div style="width:160px;height:42px;border:2px solid #000;margin:8px auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:11px">
+        <span>Sign.</span>
+        <span style="font-size:10px">Mob: ${esc(f.studentMobileNo || s.mobileNo || "")}</span>
       </div>
     </div>
 
@@ -1175,7 +1184,10 @@ function renderForm5(d: PrintFormData): string {
 
         <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px">
           <span class="form-label bold" style="font-size:13.5px">Date: ________________________</span>
-          <span class="form-label bold" style="font-size:13.5px">Signature:________________________</span>
+          <div style="text-align:right">
+            <span class="form-label bold" style="font-size:13.5px">Signature:________________________</span><br/>
+            <span style="font-size:11px;font-weight:bold">Mob: ${esc(s.mobileNo)}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1286,8 +1298,14 @@ function renderForm5(d: PrintFormData): string {
     </div>
 
     <div style="display:flex;justify-content:space-around;align-items:center;margin-top:20px">
-      <div class="signature-line">सही (१)</div>
-      <div class="signature-line">सही (२)</div>
+      <div style="text-align:center">
+        <div class="signature-line">सही (१)</div>
+        <div style="font-size:10px;font-weight:bold;margin-top:2px">Mob: ${esc(s.mobileNo)}</div>
+      </div>
+      <div style="text-align:center">
+        <div class="signature-line">सही (२)</div>
+        <div style="font-size:10px;font-weight:bold;margin-top:2px">Mob: ${esc(s.parentsTelNo || s.mobileNo)}</div>
+      </div>
       <div style="width:140px;height:40px;border:1px solid #000;text-align:center;font-size:11px;padding-top:10px">सही (३)</div>
     </div>
   </div>`;

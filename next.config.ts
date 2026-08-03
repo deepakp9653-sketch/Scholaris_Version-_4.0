@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfjs-dist", "@electric-sql/pglite"],
-  transpilePackages: ["lucide-react"],
+  experimental: {
+    optimizePackageImports: [],
+  },
 };
 
 export default nextConfig;

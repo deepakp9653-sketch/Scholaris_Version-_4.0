@@ -30,10 +30,10 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
   const hscChem = watch("hscChemistryObtained");
   const hscMath = watch("hscMathsObtained");
 
-  // 1. Fixed Academic Year 2026 - 2030
+  // 1. Fixed Academic Year 2026 - 2027
   useEffect(() => {
     setValue("admissionYearStart", 2026);
-    setValue("admissionYearEnd", 2030);
+    setValue("admissionYearEnd", 2027);
   }, [setValue]);
 
   // 2. S.S.C. Percentage Auto-calculation

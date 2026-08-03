@@ -116,7 +116,7 @@ export const FORM1_DEFAULT_VALUES: Form1Values = {
   admissionQuota: null,
   admissionCategory: null,
   admissionYearStart: 2026,
-  admissionYearEnd: 2030,
+  admissionYearEnd: 2027,
   homeUniversity: null,
   motherTongue: null,
   sscMarksEnglishObtained: null,

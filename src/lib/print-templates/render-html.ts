@@ -29,19 +29,13 @@ function escDate(val: unknown): string {
 }
 
 function formatAcademicYear(yearStartVal: unknown, yearEndVal: unknown) {
-  let start = String(yearStartVal || "25").trim();
-  let end = String(yearEndVal || "").trim();
-
+  let start = String(yearStartVal || "26").trim();
   if (start.length === 4) start = start.slice(2);
-  if (end.length === 4) end = end.slice(2);
 
-  const startNum = parseInt(start, 10) || 25;
+  const startNum = parseInt(start, 10) || 26;
   const startShort = String(startNum).padStart(2, "0");
 
-  let endNum = parseInt(end, 10);
-  if (isNaN(endNum)) {
-    endNum = (startNum + 1) % 100;
-  }
+  const endNum = (startNum + 1) % 100;
   const endShort = String(endNum).padStart(2, "0");
 
   return {

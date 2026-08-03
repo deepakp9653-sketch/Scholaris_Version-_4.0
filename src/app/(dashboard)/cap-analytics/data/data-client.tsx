@@ -2,9 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Loader2, AlertCircle } from "lucide-react";
+import { Trash2, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CapPdfUpload } from "@/components/cap/cap-pdf-upload";
 import { deleteCapBatch } from "@/lib/actions/cap";
 
@@ -26,17 +35,35 @@ export function DataPageClient({ batches: initialBatches }: DataPageClientProps)
   const router = useRouter();
   const [batches, setBatches] = useState(initialBatches);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [targetBatchToDelete, setTargetBatchToDelete] = useState<Batch | null>(null);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const handleDelete = (id: string) => {
-    if (!confirm("Delete this upload batch? This will remove all associated candidate data.")) return;
-    setDeletingId(id);
+  const handleOpenDeleteModal = (batch: Batch) => {
+    setTargetBatchToDelete(batch);
+    setPasswordInput("");
+    setPasswordError("");
+  };
+
+  const handleConfirmDelete = () => {
+    if (!targetBatchToDelete) return;
+    if (passwordInput !== "Admin@123") {
+      setPasswordError("Incorrect admin password.");
+      return;
+    }
+
+    const batchId = targetBatchToDelete.id;
+    setDeletingId(batchId);
+    setPasswordError("");
+
     startTransition(async () => {
-      const result = await deleteCapBatch(id);
+      const result = await deleteCapBatch(batchId, passwordInput);
       if (result.success) {
-        setBatches((prev) => prev.filter((b) => b.id !== id));
+        setBatches((prev) => prev.filter((b) => b.id !== batchId));
+        setTargetBatchToDelete(null);
       } else {
-        alert(result.error ?? "Delete failed");
+        setPasswordError(result.error ?? "Delete failed");
       }
       setDeletingId(null);
     });
@@ -96,7 +123,7 @@ export function DataPageClient({ batches: initialBatches }: DataPageClientProps)
                       size="sm"
                       variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDelete(batch.id)}
+                      onClick={() => handleOpenDeleteModal(batch)}
                       disabled={deletingId === batch.id && isPending}
                     >
                       {deletingId === batch.id && isPending ? (
@@ -112,6 +139,61 @@ export function DataPageClient({ batches: initialBatches }: DataPageClientProps)
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!targetBatchToDelete} onOpenChange={(open: boolean) => !open && setTargetBatchToDelete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Lock className="w-4 h-4" /> Delete CAP Round PDF
+            </DialogTitle>
+            <DialogDescription>
+              Enter the admin password to delete <strong>{targetBatchToDelete?.roundLabel}</strong> ({targetBatchToDelete?.sourceFilename}). This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-3 space-y-2">
+            <Input
+              type="password"
+              autoComplete="new-password"
+              value={passwordInput}
+              onChange={(e) => {
+                setPasswordInput(e.target.value);
+                setPasswordError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleConfirmDelete();
+              }}
+            />
+            {passwordError && (
+              <p className="text-xs text-destructive font-medium">{passwordError}</p>
+            )}
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setTargetBatchToDelete(null)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <span className="flex items-center gap-1.5">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Deleting...
+                </span>
+              ) : (
+                "Delete Batch"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

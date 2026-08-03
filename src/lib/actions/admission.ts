@@ -157,7 +157,7 @@ export async function saveFormData(
         "admissionQuota", "admissionCategory", "homeUniversity", "motherTongue",
         "sscMarksEnglishObtained", "sscMarksEnglishOutOf", "sscMarksMathsObtained", "sscMarksMathsOutOf",
         "sscGrandTotalObtained", "sscGrandTotalOutOf", "sscPercentage", "sscYearOfPassing",
-        "hscPhysicsObtained", "hscPhysicsOutOf", "hscChemistryObtained", "hscChemistryOutOf",
+        "hscPhysicsObtained", "hscPhysicsOutOf", "hscChemistrySubjectName", "hscChemistryObtained", "hscChemistryOutOf",
         "hscMathsObtained", "hscMathsOutOf", "hscPcmTotalObtained", "hscPcmTotalOutOf",
         "hscGrandTotalObtained", "hscGrandTotalOutOf", "hscYearOfPassing",
         "cetPhysicsObtained", "cetPhysicsOutOf", "cetChemistryObtained", "cetChemistryOutOf",

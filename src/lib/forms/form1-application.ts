@@ -47,6 +47,7 @@ export const form1Schema = z.object({
   // ── HSC Marks ──
   hscPhysicsObtained: z.coerce.number().nullable().optional(),
   hscPhysicsOutOf: z.coerce.number().nullable().optional(),
+  hscChemistrySubjectName: z.string().nullable().optional(),
   hscChemistryObtained: z.coerce.number().nullable().optional(),
   hscChemistryOutOf: z.coerce.number().nullable().optional(),
   hscMathsObtained: z.coerce.number().nullable().optional(),
@@ -129,6 +130,7 @@ export const FORM1_DEFAULT_VALUES: Form1Values = {
   sscYearOfPassing: null,
   hscPhysicsObtained: null,
   hscPhysicsOutOf: 100,
+  hscChemistrySubjectName: "Chemistry",
   hscChemistryObtained: null,
   hscChemistryOutOf: 100,
   hscMathsObtained: null,

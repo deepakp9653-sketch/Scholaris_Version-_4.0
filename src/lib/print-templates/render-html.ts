@@ -1,5 +1,6 @@
 import { PRINT_STYLES } from "./print-styles";
 import { PrintFormData } from "./get-form-data";
+import { isDocumentRequiredForCategory } from "../forms/form2-checklist";
 
 /* ──────────────────── helpers ──────────────────── */
 
@@ -54,6 +55,49 @@ function formatQuota(quota: unknown): string {
   if (str === "TFWS") return "TFWS";
   if (str === "EWS") return "EWS";
   return str.replace(/_/g, " ");
+}
+
+export interface MappedCategory {
+  code: "OPEN" | "SC" | "ST" | "NT-A" | "NT-B" | "NT-C" | "NT-D" | "OBC" | "SBC" | "SEBC" | "EWS" | "OTHER";
+  isNTA: boolean; // NT-A / VJ / DT-A
+  isNTB: boolean; // NT-B / NT 1
+  isNTC: boolean; // NT-C / NT 2
+  isNTD: boolean; // NT-D / NT 3
+  isReserved: boolean;
+}
+
+export function parseCategory(catVal: unknown): MappedCategory {
+  const cat = String(catVal || "OPEN").toUpperCase().trim().replace(/_/g, " ");
+
+  const isNTA = cat === "NT-A" || cat === "NTA" || cat === "NT A" || cat === "VJ" || cat === "VJ-A" || cat === "VJA" || cat === "DT-A" || cat === "DTA" || cat === "DT(A)" || cat === "DT A" || cat.startsWith("VJ");
+  const isNTB = cat === "NT-B" || cat === "NTB" || cat === "NT B" || cat === "NT-1" || cat === "NT 1" || cat === "NT1" || cat === "NT(B)" || cat === "NT 1";
+  const isNTC = cat === "NT-C" || cat === "NTC" || cat === "NT C" || cat === "NT-2" || cat === "NT 2" || cat === "NT2" || cat === "NT(C)" || cat === "NT 2";
+  const isNTD = cat === "NT-D" || cat === "NTD" || cat === "NT D" || cat === "NT-3" || cat === "NT 3" || cat === "NT3" || cat === "NT(D)" || cat === "NT 3";
+
+  const isSC = cat === "SC";
+  const isST = cat === "ST";
+  const isOBC = cat === "OBC";
+  const isSBC = cat === "SBC";
+  const isSEBC = cat === "SEBC";
+  const isEWS = cat === "EWS";
+  const isOPEN = cat === "OPEN" || cat === "GEN" || cat === "GENERAL";
+
+  let code: MappedCategory["code"] = "OPEN";
+  if (isNTA) code = "NT-A";
+  else if (isNTB) code = "NT-B";
+  else if (isNTC) code = "NT-C";
+  else if (isNTD) code = "NT-D";
+  else if (isSC) code = "SC";
+  else if (isST) code = "ST";
+  else if (isOBC) code = "OBC";
+  else if (isSBC) code = "SBC";
+  else if (isSEBC) code = "SEBC";
+  else if (isEWS) code = "EWS";
+  else if (!isOPEN) code = "OTHER";
+
+  const isReserved = !isOPEN && code !== "OPEN";
+
+  return { code, isNTA, isNTB, isNTC, isNTD, isReserved };
 }
 
 /* ════════════════════════════════════════════════════
@@ -233,7 +277,7 @@ function renderForm1(d: PrintFormData): string {
       <div style="font-weight:bold;font-size:12.5px">13. a) H.S.C. Marks :</div>
       <table class="form-table mt-4">
         <thead><tr>
-          <th style="width:120px"></th><th>Physics</th><th>Chemistry</th><th>Mathematics</th><th>PCM Total</th><th>Grand Total</th>
+          <th style="width:120px"></th><th>Physics</th><th>${esc(f.hscChemistrySubjectName || "Chemistry")}</th><th>Mathematics</th><th>PCM Total</th><th>Grand Total</th>
         </tr></thead>
         <tbody>
           <tr>
@@ -567,11 +611,11 @@ function renderForm3(d: PrintFormData): string {
   const dobDay = dobParts[0] || "";
   const dobMonth = dobParts[1] || "";
   const dobYear = dobParts[2] || "";
-  const category = v(s.category || f.categoryTick || "").toUpperCase();
+  const rawCat = String(s.category || f.categoryTick || d.form1.admissionCategory || "");
+  const catInfo = parseCategory(rawCat);
 
   const rollNoVal = esc(f.rollNo || s.rollNo || f.officeReceiptNo || "");
   const courseYear = String(f.courseYear || "1st").trim();
-  const isReservedCategory = category !== "OPEN";
 
   // Page 4
   const page4 = `<div class="page-container">
@@ -677,22 +721,22 @@ function renderForm3(d: PrintFormData): string {
           <th>Open</th><th>SC</th><th>ST</th><th>DT(A)</th><th>NT(B)</th><th>NT(C)</th><th>NT(D)</th><th>OBC</th><th>SBC</th><th>SEBC</th><th>EWS</th>
         </tr></thead>
         <tbody><tr>
-          <td>${category === "OPEN" ? "✓" : ""}</td>
-          <td>${category === "SC" ? "✓" : ""}</td>
-          <td>${category === "ST" ? "✓" : ""}</td>
-          <td>${category === "DT(A)" || category === "DTA" ? "✓" : ""}</td>
-          <td>${category === "NT(B)" || category === "NTB" ? "✓" : ""}</td>
-          <td>${category === "NT(C)" || category === "NTC" ? "✓" : ""}</td>
-          <td>${category === "NT(D)" || category === "NTD" ? "✓" : ""}</td>
-          <td>${category === "OBC" ? "✓" : ""}</td>
-          <td>${category === "SBC" ? "✓" : ""}</td>
-          <td>${category === "SEBC" ? "✓" : ""}</td>
-          <td>${category === "EWS" ? "✓" : ""}</td>
+          <td>${catInfo.code === "OPEN" ? "✓" : ""}</td>
+          <td>${catInfo.code === "SC" ? "✓" : ""}</td>
+          <td>${catInfo.code === "ST" ? "✓" : ""}</td>
+          <td>${catInfo.isNTA ? "✓" : ""}</td>
+          <td>${catInfo.isNTB ? "✓" : ""}</td>
+          <td>${catInfo.isNTC ? "✓" : ""}</td>
+          <td>${catInfo.isNTD ? "✓" : ""}</td>
+          <td>${catInfo.code === "OBC" ? "✓" : ""}</td>
+          <td>${catInfo.code === "SBC" ? "✓" : ""}</td>
+          <td>${catInfo.code === "SEBC" ? "✓" : ""}</td>
+          <td>${catInfo.code === "EWS" ? "✓" : ""}</td>
         </tr></tbody>
       </table>
       <div style="font-size:10px;font-style:italic">(If you belong to ony of the Reserve category attach a certificate of a Competent Authority in Support of it.)</div>
       <div style="font-size:11px;margin-top:2px">
-        <strong>1) Do you belong to DT(A), NT(B), NT(C), NT(D), OBC, SBC, SEBC or EWS?</strong> ${isReservedCategory ? "<u><strong>Yes</strong></u> / No" : "Yes / <u><strong>No</strong></u>"}<br/>
+        <strong>1) Do you belong to DT(A), NT(B), NT(C), NT(D), OBC, SBC, SEBC or EWS?</strong> ${catInfo.isReserved ? "<u><strong>Yes</strong></u> / No" : "Yes / <u><strong>No</strong></u>"}<br/>
         <em>(If yes submit the Non-Creamy layer certificate of a Competent Authority in support of it.)</em>
       </div>
     </div>
@@ -983,7 +1027,8 @@ function renderForm5(d: PrintFormData): string {
   const classYear = String(f.yearLevel || "F.E.").toUpperCase();
   const isDiploma = String(f.yearLevel) === "DSY" || String(s.admissionType) === "DSE";
   const diplomaType = isDiploma ? "DSY" : "FY";
-  const category = String(f.castCategory || s.category || "").toUpperCase();
+  const rawCat = String(f.castCategory || s.category || d.form1.admissionCategory || "");
+  const catInfo = parseCategory(rawCat);
 
   // Page 7 — Library Membership Form (Exact Replica of New Image 3)
   const page7 = `<div class="page-container" style="border:3px double #000;padding:10mm">
@@ -1077,15 +1122,15 @@ function renderForm5(d: PrintFormData): string {
           <th>Open</th><th>SC</th><th>ST</th><th>VJ</th><th>NT 1</th><th>NT 2</th><th>NT 3</th><th>SBC</th><th>Other</th>
         </tr></thead>
         <tbody><tr>
-          <td>${category === "OPEN" ? "✓" : ""}</td>
-          <td>${category === "SC" ? "✓" : ""}</td>
-          <td>${category === "ST" ? "✓" : ""}</td>
-          <td>${category === "VJ" || category === "DT(A)" ? "✓" : ""}</td>
-          <td>${category === "NT 1" || category === "NT1" || category === "NT(B)" ? "✓" : ""}</td>
-          <td>${category === "NT 2" || category === "NT2" || category === "NT(C)" ? "✓" : ""}</td>
-          <td>${category === "NT 3" || category === "NT3" || category === "NT(D)" ? "✓" : ""}</td>
-          <td>${category === "SBC" ? "✓" : ""}</td>
-          <td>${category !== "OPEN" && category !== "SC" && category !== "ST" && category !== "SBC" && !category.startsWith("NT") ? "✓" : ""}</td>
+          <td>${catInfo.code === "OPEN" ? "✓" : ""}</td>
+          <td>${catInfo.code === "SC" ? "✓" : ""}</td>
+          <td>${catInfo.code === "ST" ? "✓" : ""}</td>
+          <td>${catInfo.isNTA ? "✓" : ""}</td>
+          <td>${catInfo.isNTB ? "✓" : ""}</td>
+          <td>${catInfo.isNTC ? "✓" : ""}</td>
+          <td>${catInfo.isNTD ? "✓" : ""}</td>
+          <td>${catInfo.code === "SBC" ? "✓" : ""}</td>
+          <td>${!catInfo.isNTA && !catInfo.isNTB && !catInfo.isNTC && !catInfo.isNTD && catInfo.code !== "OPEN" && catInfo.code !== "SC" && catInfo.code !== "ST" && catInfo.code !== "SBC" ? "✓" : ""}</td>
         </tr></tbody>
       </table>
     </div>

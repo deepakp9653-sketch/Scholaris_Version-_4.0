@@ -514,11 +514,23 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
           <CardTitle className="text-base">H.S.C. Marks</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-4">
+          <div className="space-y-2 sm:col-span-4 bg-muted/30 p-3 rounded-lg border border-border/50">
+            <Label className="flex items-center justify-between text-xs font-semibold">
+              <span>3rd Subject Name (Default: Chemistry)</span>
+              <span className="text-[11px] text-muted-foreground font-normal">Edit this if candidate took Biology, CS, IT, Vocational, etc.</span>
+            </Label>
+            <Input
+              {...register("hscChemistrySubjectName")}
+              placeholder="Chemistry"
+              className="mt-1 bg-background"
+            />
+          </div>
+
           <div className="space-y-2"><Label>Physics Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscPhysicsObtained")} placeholder="Obtained" /></div>
           <div className="space-y-2"><Label>Physics Out Of</Label><Input type="number" step="0.01" {...register("hscPhysicsOutOf")} className="font-mono" /></div>
 
-          <div className="space-y-2"><Label>Chemistry Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscChemistryObtained")} placeholder="Obtained" /></div>
-          <div className="space-y-2"><Label>Chemistry Out Of</Label><Input type="number" step="0.01" {...register("hscChemistryOutOf")} className="font-mono" /></div>
+          <div className="space-y-2"><Label>{watch("hscChemistrySubjectName") || "Chemistry"} Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscChemistryObtained")} placeholder="Obtained" /></div>
+          <div className="space-y-2"><Label>{watch("hscChemistrySubjectName") || "Chemistry"} Out Of</Label><Input type="number" step="0.01" {...register("hscChemistryOutOf")} className="font-mono" /></div>
 
           <div className="space-y-2"><Label>Maths Obtained</Label><Input type="number" step="0.01" min={0} max={100} {...register("hscMathsObtained")} placeholder="Obtained" /></div>
           <div className="space-y-2"><Label>Maths Out Of</Label><Input type="number" step="0.01" {...register("hscMathsOutOf")} className="font-mono" /></div>

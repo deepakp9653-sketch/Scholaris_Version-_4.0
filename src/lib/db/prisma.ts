@@ -22,6 +22,7 @@ export async function ensureDbCalibrated() {
           ALTER TABLE admission_record ADD COLUMN IF NOT EXISTS voter_registered_yn text;
           ALTER TABLE admission_record ADD COLUMN IF NOT EXISTS epic_card_yn text;
           ALTER TABLE admission_record ADD COLUMN IF NOT EXISTS epic_number text;
+          ALTER TABLE form1_application ADD COLUMN IF NOT EXISTS hsc_chemistry_subject_name text DEFAULT 'Chemistry';
 
           CREATE TABLE IF NOT EXISTS academic_batch (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

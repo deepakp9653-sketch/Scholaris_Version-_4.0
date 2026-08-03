@@ -54,15 +54,15 @@ export function isDocumentRequiredForCategory(
   category: string | null | undefined,
   isOpenOms: boolean = false
 ): boolean {
-  const normCat = (category || "Open").toUpperCase().trim();
+  const normCat = (category || "Open").toUpperCase().trim().replace(/_/g, " ");
 
   const isSC = normCat === "SC";
   const isST = normCat === "ST";
-  const isVJA = normCat === "VJ-A" || normCat === "VJ" || normCat === "DT-A" || normCat === "DT(A)" || normCat === "DT_A" || normCat === "NT-A" || normCat === "NTA";
-  const isNTB = normCat === "NT-B" || normCat === "NTB" || normCat === "NT 1" || normCat === "NT1" || normCat === "NT(B)" || normCat === "NT-1";
-  const isNTC = normCat === "NT-C" || normCat === "NTC" || normCat === "NT 2" || normCat === "NT2" || normCat === "NT(C)" || normCat === "NT-2";
-  const isNTD = normCat === "NT-D" || normCat === "NTD" || normCat === "NT 3" || normCat === "NT3" || normCat === "NT(D)" || normCat === "NT-3";
-  const isNT = isNTB || isNTC || isNTD || normCat.startsWith("NT");
+  const isVJA = normCat === "VJ-A" || normCat === "VJ" || normCat === "DT-A" || normCat === "DT(A)" || normCat === "DT_A" || normCat === "NT-A" || normCat === "NTA" || normCat === "NT A" || normCat.startsWith("VJ");
+  const isNTB = normCat === "NT-B" || normCat === "NTB" || normCat === "NT 1" || normCat === "NT1" || normCat === "NT(B)" || normCat === "NT-1" || normCat === "NT B";
+  const isNTC = normCat === "NT-C" || normCat === "NTC" || normCat === "NT 2" || normCat === "NT2" || normCat === "NT(C)" || normCat === "NT-2" || normCat === "NT C";
+  const isNTD = normCat === "NT-D" || normCat === "NTD" || normCat === "NT 3" || normCat === "NT3" || normCat === "NT(D)" || normCat === "NT-3" || normCat === "NT D";
+  const isNT = isVJA || isNTB || isNTC || isNTD || normCat.startsWith("NT");
   const isOBC = normCat === "OBC";
   const isSBC = normCat === "SBC" || normCat === "SEBC";
   const isEWS = normCat === "EWS";

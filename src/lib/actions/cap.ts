@@ -423,8 +423,11 @@ export async function getCapBatches() {
   }
 }
 
-export async function deleteCapBatch(batchId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteCapBatch(batchId: string, password?: string): Promise<{ success: boolean; error?: string }> {
   await requireAuth();
+  if (password !== "Admin@123") {
+    return { success: false, error: "Incorrect admin password" };
+  }
   try {
     const candidateIds = (
       await prisma.capCandidate.findMany({

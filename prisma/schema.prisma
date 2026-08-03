@@ -149,6 +149,7 @@ model Form1Application {
   sscYearOfPassing Int? @map("ssc_year_of_passing")
   hscPhysicsObtained Decimal?              @db.Decimal @map("hsc_physics_obtained")
   hscPhysicsOutOf Decimal?              @db.Decimal @map("hsc_physics_out_of")
+  hscChemistrySubjectName String?               @default("Chemistry") @map("hsc_chemistry_subject_name")
   hscChemistryObtained Decimal?              @db.Decimal @map("hsc_chemistry_obtained")
   hscChemistryOutOf Decimal?              @db.Decimal @map("hsc_chemistry_out_of")
   hscMathsObtained Decimal?              @db.Decimal @map("hsc_maths_obtained")

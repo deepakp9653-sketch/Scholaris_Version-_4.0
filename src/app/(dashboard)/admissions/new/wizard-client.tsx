@@ -436,6 +436,7 @@ export function WizardClient({ capCandidateId, capImportBanner, initialRecord }:
         sscYearOfPassing: f1.sscYearOfPassing ?? null,
         hscPhysicsObtained: f1.hscPhysicsObtained ? Number(f1.hscPhysicsObtained) : null,
         hscPhysicsOutOf: f1.hscPhysicsOutOf ? Number(f1.hscPhysicsOutOf) : null,
+        hscChemistrySubjectName: f1.hscChemistrySubjectName || "Chemistry",
         hscChemistryObtained: f1.hscChemistryObtained ? Number(f1.hscChemistryObtained) : null,
         hscChemistryOutOf: f1.hscChemistryOutOf ? Number(f1.hscChemistryOutOf) : null,
         hscMathsObtained: f1.hscMathsObtained ? Number(f1.hscMathsObtained) : null,

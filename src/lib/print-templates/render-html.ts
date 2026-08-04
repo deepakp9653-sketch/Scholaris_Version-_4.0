@@ -1143,7 +1143,7 @@ function renderForm5(d: PrintFormData): string {
         <span class="form-label bold">11. Student Mobile No:</span>
         <span class="form-value medium">${esc(f.studentMobileNo || s.mobileNo || "")}</span>
         <span class="form-label bold" style="margin-left:15px">Parents Tel. No:</span>
-        <span class="form-value medium">${esc(s.parentMobileNo || s.correspondenceMobile || "")}</span>
+        <span class="form-value medium">${esc(f.parentsTelNo || (d.form5 && d.form5.parentsTelNo) || s.parentsTelNo || s.parentMobileNo || (d.form1 && (d.form1.contactTelNo || d.form1.permanentTelNo)) || s.correspondenceMobile || s.guardianMobileNo || s.fatherMobileNo || "")}</span>
       </div>
 
       <!-- 12. Cast Category Table with Tick (Matching New Image 3) -->

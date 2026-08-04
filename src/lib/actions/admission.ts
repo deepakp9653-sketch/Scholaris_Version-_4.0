@@ -308,6 +308,20 @@ export async function saveFormData(
         create: payload as any,
         update: payload as any,
       });
+
+      const profileUpdate: Record<string, any> = {};
+      if (data.parentsTelNo !== undefined) {
+        profileUpdate.parentsTelNo = data.parentsTelNo === "" || data.parentsTelNo === null ? null : String(data.parentsTelNo);
+      }
+      if (data.studentMobileNo !== undefined) {
+        profileUpdate.mobileNo = data.studentMobileNo === "" || data.studentMobileNo === null ? null : String(data.studentMobileNo);
+      }
+      if (Object.keys(profileUpdate).length > 0) {
+        await prisma.studentProfile.updateMany({
+          where: { admissionRecordId: recordId },
+          data: profileUpdate,
+        });
+      }
     }
 
     return { success: true };

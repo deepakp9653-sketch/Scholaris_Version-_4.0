@@ -88,7 +88,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       prisma.admissionRecord.count({ where: { status: "PENDING_FINAL_VERIFICATION" } }),
       prisma.admissionRecord.count({
         where: {
-          feeRecord: { feeStatus: { not: "Fully_Paid" } },
+          feeRecord: {
+            AND: [
+              { feeStatus: { not: "Fully_Paid" } },
+              { totalFeeAmount: { gt: 0 } },
+            ],
+          },
         },
       }),
       prisma.admissionRecord.groupBy({
@@ -117,21 +122,29 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getFilterOptions() {
   await requireAuth();
 
-  const records = await prisma.admissionRecord.findMany({
-    select: {
-      studentProfile: { select: { branchCourse: true, category: true } },
-    },
-  });
+  try {
+    const records = await prisma.admissionRecord.findMany({
+      select: {
+        studentProfile: { select: { branchCourse: true, category: true } },
+      },
+    });
 
-  const branches = new Set<string>();
-  const categories = new Set<string>();
-  for (const r of records) {
-    if (r.studentProfile?.branchCourse) branches.add(r.studentProfile.branchCourse);
-    if (r.studentProfile?.category) categories.add(r.studentProfile.category);
+    const branches = new Set<string>();
+    const categories = new Set<string>();
+    for (const r of records) {
+      if (r.studentProfile?.branchCourse) branches.add(r.studentProfile.branchCourse);
+      if (r.studentProfile?.category) categories.add(r.studentProfile.category);
+    }
+
+    return {
+      branches: Array.from(branches).sort(),
+      categories: Array.from(categories).sort(),
+    };
+  } catch (err) {
+    console.warn("getFilterOptions DB fallback note:", err);
+    return {
+      branches: ["Civil Engineering", "Computer Engineering", "E&TC Engineering", "Electrical Engineering", "Mechanical Engineering"],
+      categories: ["OPEN", "SC", "ST", "VJ/DT-A", "NT-B (NT 1)", "NT-C (NT 2)", "NT-D (NT 3)", "OBC", "SBC", "SEBC", "EWS"],
+    };
   }
-
-  return {
-    branches: Array.from(branches).sort(),
-    categories: Array.from(categories).sort(),
-  };
 }

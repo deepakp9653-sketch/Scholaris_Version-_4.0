@@ -56,6 +56,7 @@ function computeFeeStatus(
   totalFee: number,
   amountPaid: number
 ): "Unpaid" | "Partially_Paid" | "Fully_Paid" {
+  if (totalFee === 0) return "Fully_Paid";
   if (amountPaid <= 0) return "Unpaid";
   if (amountPaid >= totalFee) return "Fully_Paid";
   return "Partially_Paid";

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FeeStatusBadge } from "@/components/fee/fee-status-badge";
 import { formatClientDate } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { Calendar, Filter } from "lucide-react";
 
 interface AdmittedRecord {
   id: string;
@@ -37,91 +37,186 @@ interface RegistryClientProps {
   records: AdmittedRecord[];
 }
 
+function getLocalYYYYMMDD(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function RegistryClient({ records: initialRecords }: RegistryClientProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "yesterday" | "custom">("all");
+  const [customDate, setCustomDate] = useState("");
 
-  const filtered = search
-    ? initialRecords.filter((r) => {
-        const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst].filter(Boolean).join(" ").toLowerCase();
-        const branch = (r.studentProfile?.branchCourse ?? "").toLowerCase();
-        const q = search.toLowerCase();
-        return name.includes(q) || branch.includes(q);
-      })
-    : initialRecords;
+  const todayStr = getLocalYYYYMMDD(new Date());
+
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = getLocalYYYYMMDD(yesterdayDate);
+
+  const filtered = initialRecords.filter((r) => {
+    // 1. Text Search Filter
+    if (search) {
+      const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const branch = (r.studentProfile?.branchCourse ?? "").toLowerCase();
+      const q = search.toLowerCase();
+      if (!name.includes(q) && !branch.includes(q)) return false;
+    }
+
+    // 2. Date Filter
+    if (dateFilter !== "all") {
+      const rawDate = r.admittedStudent?.admittedAt || r.updatedAt || r.createdAt;
+      if (!rawDate) return false;
+      const recDateStr = getLocalYYYYMMDD(new Date(rawDate));
+
+      if (dateFilter === "today" && recDateStr !== todayStr) return false;
+      if (dateFilter === "yesterday" && recDateStr !== yesterdayStr) return false;
+      if (dateFilter === "custom" && customDate && recDateStr !== customDate) return false;
+    }
+
+    return true;
+  });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-6xl space-y-6 p-6">
+      {/* Header & Filter Controls */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-heading text-xl font-semibold text-foreground">
             Admitted Students Registry
           </h1>
           <p className="text-sm text-muted-foreground">
-            {initialRecords.length} admitted student{initialRecords.length !== 1 ? "s" : ""}
+            {filtered.length} admitted student{filtered.length !== 1 ? "s" : ""}
+            {dateFilter !== "all" || search ? ` (filtered from ${initialRecords.length})` : ""}
           </p>
         </div>
-        <Input
-          placeholder="Search by name or branch..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Date Filter Selection */}
+          <div className="flex items-center gap-1 bg-surface-muted p-1 rounded-lg border border-border text-xs">
+            <Filter className="w-3.5 h-3.5 ml-1.5 text-muted-foreground" />
+            <button
+              type="button"
+              onClick={() => setDateFilter("all")}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                dateFilter === "all" ? "bg-background text-foreground font-medium shadow-xs" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All Dates
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateFilter("today")}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                dateFilter === "today" ? "bg-background text-foreground font-medium shadow-xs" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateFilter("yesterday")}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                dateFilter === "yesterday" ? "bg-background text-foreground font-medium shadow-xs" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Yesterday
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateFilter("custom")}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                dateFilter === "custom" ? "bg-background text-foreground font-medium shadow-xs" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Specific Date
+            </button>
+          </div>
+
+          {/* Custom Date Picker Input */}
+          {dateFilter === "custom" && (
+            <div className="flex items-center gap-1">
+              <Input
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                className="h-8 text-xs max-w-[150px]"
+              />
+            </div>
+          )}
+
+          {/* Search Box */}
+          <Input
+            placeholder="Search by name or branch..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-xs h-8 text-xs"
+          />
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            {search ? "No records match your search." : "No admitted students yet."}
+            {search || dateFilter !== "all"
+              ? "No student records match your search and date filter criteria."
+              : "No admitted students recorded in registry yet."}
           </CardContent>
         </Card>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border bg-background shadow-xs">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-surface-muted">
-                <th className="text-left py-3 px-3 font-medium">Name</th>
-                <th className="text-left py-3 px-3 font-medium">Branch</th>
-                <th className="text-left py-3 px-3 font-medium">Category</th>
-                <th className="text-left py-3 px-3 font-medium">Year</th>
-                <th className="text-left py-3 px-3 font-medium">Fee Status</th>
-                <th className="text-left py-3 px-3 font-medium">Admitted On</th>
-                <th className="text-left py-3 px-3 font-medium">Contact</th>
-                <th className="text-right py-3 px-3 font-medium">Actions</th>
+              <tr className="border-b border-border bg-surface-muted/70 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <th className="text-left py-3 px-3">Name</th>
+                <th className="text-left py-3 px-3">Branch</th>
+                <th className="text-left py-3 px-3">Category</th>
+                <th className="text-left py-3 px-3">Year</th>
+                <th className="text-left py-3 px-3">Fee Status</th>
+                <th className="text-left py-3 px-3">Admitted On</th>
+                <th className="text-left py-3 px-3">Contact</th>
+                <th className="text-right py-3 px-3">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/60">
               {filtered.map((record) => {
                 const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst]
                   .filter(Boolean)
-                  .join(" ") || "Unnamed";
+                  .join(" ") || "Unnamed Student";
+
+                const admissionDateVal = record.admittedStudent?.admittedAt || record.updatedAt || record.createdAt;
 
                 return (
-                  <tr key={record.id} className="border-b border-border/50 hover:bg-surface-muted/50">
-                    <td className="py-2.5 px-3 font-medium">{name}</td>
-                    <td className="py-2.5 px-3 text-muted-foreground">{record.studentProfile?.branchCourse ?? "-"}</td>
-                    <td className="py-2.5 px-3 text-muted-foreground">{record.studentProfile?.category ?? "-"}</td>
-                    <td className="py-2.5 px-3 text-muted-foreground">{record.studentProfile?.admissionYearStart ?? "-"}</td>
-                    <td className="py-2.5 px-3">
+                  <tr key={record.id} className="hover:bg-surface-muted/40 transition-colors">
+                    <td className="py-3 px-3 font-semibold text-foreground">{name}</td>
+                    <td className="py-3 px-3 text-muted-foreground">{record.studentProfile?.branchCourse ?? "-"}</td>
+                    <td className="py-3 px-3 text-muted-foreground">{record.studentProfile?.category ?? "-"}</td>
+                    <td className="py-3 px-3 text-muted-foreground">{record.studentProfile?.admissionYearStart ?? "2026"}</td>
+                    <td className="py-3 px-3">
                       <FeeStatusBadge
                         feeStatus={record.feeRecord?.feeStatus ?? null}
                         totalFee={record.feeRecord?.totalFeeAmount ?? null}
                         amountPaid={record.feeRecord?.amountPaid ?? null}
                       />
                     </td>
-                    <td className="py-2.5 px-3 text-muted-foreground" suppressHydrationWarning>
-                      {formatClientDate(record.admittedStudent?.admittedAt)}
+                    <td className="py-3 px-3 font-medium text-foreground" suppressHydrationWarning>
+                      {formatClientDate(admissionDateVal)}
                     </td>
-                    <td className="py-2.5 px-3 text-muted-foreground text-xs">
-                      <div>{record.studentProfile?.mobileNo ?? ""}</div>
-                      <div className="truncate max-w-[150px]">{record.studentProfile?.email ?? ""}</div>
+                    <td className="py-3 px-3 text-muted-foreground text-xs">
+                      <div className="font-medium text-foreground">{record.studentProfile?.mobileNo ?? "-"}</div>
+                      <div className="truncate max-w-[160px] text-muted-foreground">{record.studentProfile?.email ?? "-"}</div>
                     </td>
-                    <td className="py-2.5 px-3 text-right">
+                    <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs px-2.5 font-medium border-primary/40 text-primary hover:bg-primary/5"
+                          className="h-7 text-xs px-2.5 font-medium border-primary/40 text-primary hover:bg-primary/5 shadow-2xs"
                           onClick={() => window.open(`/admissions/${record.id}/preview`, "_blank")}
                         >
                           Preview &amp; Download Form Dossier

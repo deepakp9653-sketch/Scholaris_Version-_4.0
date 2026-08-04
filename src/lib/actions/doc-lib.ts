@@ -27,6 +27,9 @@ export interface StudentDocOverview {
   status: string;
   totalDocuments: number;
   verifiedDocuments: number;
+  studentProfile: any;
+  feeRecord: any;
+  createdAt: Date;
   documents: {
     id: string;
     documentName: string;
@@ -170,6 +173,7 @@ export async function getDocLibStudentDocuments(query?: {
       include: {
         studentProfile: true,
         capCandidate: true,
+        feeRecord: true,
         documentUploads: {
           include: {
             checklistItem: true,
@@ -213,6 +217,17 @@ export async function getDocLibStudentDocuments(query?: {
         status: r.status,
         totalDocuments: docs.length,
         verifiedDocuments: verifiedCount,
+        studentProfile: r.studentProfile,
+        feeRecord: r.feeRecord
+          ? {
+              feeStatus: r.feeRecord.feeStatus,
+              totalFeeAmount: r.feeRecord.totalFeeAmount?.toNumber() ?? 0,
+              amountPaid: r.feeRecord.amountPaid?.toNumber() ?? 0,
+              remainingBalance: r.feeRecord.remainingBalance?.toNumber() ?? 0,
+              modeOfPayment: r.feeRecord.modeOfPayment,
+            }
+          : null,
+        createdAt: r.createdAt,
         documents: docs,
       };
     });

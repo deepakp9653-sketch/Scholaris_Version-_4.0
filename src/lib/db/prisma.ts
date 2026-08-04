@@ -60,7 +60,16 @@ function createPrismaClient() {
 
   if (connectionString && !connectionString.includes("localhost:5432")) {
     const cleanUrl = connectionString.replace(/[\?&]channel_binding=require/g, "");
-    activePool = new Pool({ connectionString: cleanUrl });
+    activePool = new Pool({
+      connectionString: cleanUrl,
+      ssl: { rejectUnauthorized: false },
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+    activePool.on("error", (err) => {
+      console.warn("Postgres pool idle network note:", err.message);
+    });
     ensureDbCalibrated();
   } else {
     // Fallback to embedded WASM PGlite Postgres for zero-config local execution

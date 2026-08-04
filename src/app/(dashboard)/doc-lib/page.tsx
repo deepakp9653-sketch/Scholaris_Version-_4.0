@@ -47,6 +47,7 @@ export default function DocLibPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("ALL");
   const [selectedStudent, setSelectedStudent] = useState<StudentDocOverview | null>(null);
+  const [modalTab, setModalTab] = useState<"profile" | "documents">("profile");
 
   // Check unlock status on mount
   useEffect(() => {
@@ -417,16 +418,16 @@ export default function DocLibPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Student Document Set Modal (Read-Only) */}
+      {/* Student Document Set & Full Profile Modal (Read-Only) */}
       {selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="relative max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-xl bg-background shadow-2xl flex flex-col">
+          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-xl bg-background shadow-2xl flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center justify-between border-b px-6 py-4 bg-surface-muted/30">
               <div>
-                <h3 className="text-lg font-bold">{selectedStudent.studentName}</h3>
+                <h3 className="text-lg font-bold text-foreground">{selectedStudent.studentName}</h3>
                 <p className="text-xs text-muted-foreground">
-                  Document Archive Set • {selectedStudent.branch || "General"} • App ID: {selectedStudent.applicationId || selectedStudent.recordId}
+                  {selectedStudent.branch || "General"} • App ID: {selectedStudent.applicationId || selectedStudent.recordId} • Category: {selectedStudent.category || "General"}
                 </p>
               </div>
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedStudent(null)}>
@@ -434,47 +435,266 @@ export default function DocLibPage() {
               </Button>
             </div>
 
-            {/* Document List */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-3">
-              {selectedStudent.documents.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  No uploaded document files recorded for this candidate yet.
-                </p>
-              ) : (
-                selectedStudent.documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between p-3.5 rounded-lg border bg-muted/30"
-                  >
-                    <div className="space-y-1">
-                      <p className="font-semibold text-sm text-foreground">{doc.documentName}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>Format: {doc.fileType.toUpperCase()}</span>
-                        <span>•</span>
+            {/* Modal Tabs Header */}
+            <div className="flex border-b px-6 bg-muted/20">
+              <button
+                type="button"
+                onClick={() => setModalTab("profile")}
+                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  modalTab === "profile"
+                    ? "border-primary text-primary bg-background"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Student Admission Profile</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalTab("documents")}
+                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  modalTab === "documents"
+                    ? "border-primary text-primary bg-background"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Uploaded Documents ({selectedStudent.documents.length})</span>
+              </button>
+            </div>
+
+            {/* Modal Content Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {modalTab === "profile" ? (
+                /* Full Student Profile Data View */
+                <div className="space-y-6 text-xs">
+                  {/* 1. Personal Details */}
+                  <div className="rounded-lg border p-4 bg-card space-y-3">
+                    <h4 className="font-bold text-sm text-foreground flex items-center gap-2 border-b pb-2">
+                      <UserCheck className="w-4 h-4 text-primary" /> Personal Details
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Full Name (Surname First):</span>
+                        <span className="font-semibold text-foreground text-sm">
+                          {selectedStudent.studentProfile?.fullNameSurname || selectedStudent.studentName}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">First Name:</span>
+                        <span className="font-semibold text-foreground">
+                          {selectedStudent.studentProfile?.fullNameFirst || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Father's Name:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.fullNameFather || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Mother's Name:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.fullNameMother || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Gender:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.gender || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Date of Birth:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.dateOfBirth ? new Date(selectedStudent.studentProfile.dateOfBirth).toLocaleDateString("en-GB") : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Blood Group:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.bloodGroup || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Cast Category:</span>
+                        <span className="font-semibold text-primary">
+                          {selectedStudent.studentProfile?.category || selectedStudent.category || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Religion & Nationality:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.religion || "Hindu"} • {selectedStudent.studentProfile?.nationality || "Indian"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Contact & Address Details */}
+                  <div className="rounded-lg border p-4 bg-card space-y-3">
+                    <h4 className="font-bold text-sm text-foreground flex items-center gap-2 border-b pb-2">
+                      <Building className="w-4 h-4 text-primary" /> Contact &amp; Address Details
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Student Mobile No:</span>
+                        <span className="font-semibold text-foreground">
+                          {selectedStudent.studentProfile?.mobileNo || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Email Address:</span>
+                        <span className="font-medium text-foreground lowercase">
+                          {selectedStudent.studentProfile?.email || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Parent/Guardian Tel No:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.parentMobileNo || selectedStudent.studentProfile?.correspondenceMobile || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Permanent Address:</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.permanentAddress || "-"}, {selectedStudent.studentProfile?.permanentCity || "PUNE"} - {selectedStudent.studentProfile?.permanentPin || ""}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Academic Qualifications */}
+                  <div className="rounded-lg border p-4 bg-card space-y-3">
+                    <h4 className="font-bold text-sm text-foreground flex items-center gap-2 border-b pb-2">
+                      <FileSpreadsheet className="w-4 h-4 text-primary" /> Academic Qualifications &amp; Exam Marks
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">S.S.C. Marks:</span>
+                        <span className="font-semibold text-foreground">
+                          {selectedStudent.studentProfile?.sscMarksObtained ?? "-"} / {selectedStudent.studentProfile?.sscMarksOutOf ?? 100}
+                          {selectedStudent.studentProfile?.sscPercentage ? ` (${Number(selectedStudent.studentProfile.sscPercentage).toFixed(2)}%)` : ""}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">H.S.C. Marks:</span>
+                        <span className="font-semibold text-foreground">
+                          {selectedStudent.studentProfile?.hscMarksObtained ?? "-"} / {selectedStudent.studentProfile?.hscMarksOutOf ?? 100}
+                          {selectedStudent.studentProfile?.hscPercentage ? ` (${Number(selectedStudent.studentProfile.hscPercentage).toFixed(2)}%)` : ""}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">PCM Subjects (Physics / Math / {selectedStudent.studentProfile?.hscCustomSubjectName || "Chem"}):</span>
+                        <span className="font-medium text-foreground">
+                          {selectedStudent.studentProfile?.hscPhysicsMarks ?? "-"} / {selectedStudent.studentProfile?.hscMathMarks ?? "-"} / {selectedStudent.studentProfile?.hscChemistryMarks ?? "-"}
+                        </span>
+                      </div>
+                      {selectedStudent.studentProfile?.diplomaBranchCourse && (
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground block text-[11px]">Diploma Details:</span>
+                          <span className="font-medium text-foreground">
+                            {selectedStudent.studentProfile.diplomaBranchCourse} • BTE: {selectedStudent.studentProfile.diplomaBteEnrollmentNo || "-"} • Pass Year: {selectedStudent.studentProfile.diplomaYearOfPassing || "-"}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">CET / JEE Percentile:</span>
+                        <span className="font-semibold text-primary">
+                          {selectedStudent.studentProfile?.cetPercentile ?? "-"} %ile
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. Admission & Fee Summary */}
+                  <div className="rounded-lg border p-4 bg-card space-y-3">
+                    <h4 className="font-bold text-sm text-foreground flex items-center gap-2 border-b pb-2">
+                      <ShieldCheck className="w-4 h-4 text-primary" /> Admission &amp; Fee Status Summary
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Admission Stage:</span>
+                        <Badge variant="outline" className="uppercase text-[10px] mt-0.5">
+                          {selectedStudent.status.replace(/_/g, " ")}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Branch:</span>
+                        <span className="font-semibold text-foreground">
+                          {selectedStudent.branch || "Not Specified"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Fee Status:</span>
                         <Badge
                           variant="outline"
-                          className={`text-[10px] ${
-                            doc.status === "VERIFIED"
+                          className={`text-[10px] mt-0.5 ${
+                            !selectedStudent.feeRecord || selectedStudent.feeRecord.totalFeeAmount === 0 || selectedStudent.feeRecord.feeStatus === "NO_FEE"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : selectedStudent.feeRecord.feeStatus === "Fully_Paid"
                               ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                               : "bg-amber-50 text-amber-700 border-amber-200"
                           }`}
                         >
-                          {doc.status}
+                          {!selectedStudent.feeRecord || selectedStudent.feeRecord.totalFeeAmount === 0 || selectedStudent.feeRecord.feeStatus === "NO_FEE"
+                            ? "No Fee"
+                            : selectedStudent.feeRecord.feeStatus.replace(/_/g, " ")}
                         </Badge>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <DocumentPreview fileRef={doc.fileRef} fileType={doc.fileType} />
+                      <div>
+                        <span className="text-muted-foreground block text-[11px]">Verified Docs:</span>
+                        <span className="font-bold text-emerald-700">
+                          {selectedStudent.verifiedDocuments} / {selectedStudent.totalDocuments}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                ))
+                </div>
+              ) : (
+                /* Document Archives List */
+                <div className="space-y-3">
+                  {selectedStudent.documents.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-8">
+                      No uploaded document files recorded for this candidate yet.
+                    </p>
+                  ) : (
+                    selectedStudent.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between p-3.5 rounded-lg border bg-muted/30"
+                      >
+                        <div className="space-y-1">
+                          <p className="font-semibold text-sm text-foreground">{doc.documentName}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>Format: {doc.fileType.toUpperCase()}</span>
+                            <span>•</span>
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] ${
+                                doc.status === "VERIFIED"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              {doc.status}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <DocumentPreview fileRef={doc.fileRef} fileType={doc.fileType} />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
             </div>
 
             {/* Footer */}
             <div className="border-t bg-muted/40 px-6 py-3 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Read-Only Projection Surface</span>
+              <span>Student Admission Record Profile Surface</span>
               <Button size="sm" variant="secondary" onClick={() => setSelectedStudent(null)}>
                 Close
               </Button>

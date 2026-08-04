@@ -13,7 +13,7 @@ export const form2Schema = z.object({
   staffSignRef: z.string().nullable(),
   studentSignRef: z.string().nullable(),
   checklistDate: z.string().nullable(),
-  items: z.array(checklistItemSchema).length(18),
+  items: z.array(checklistItemSchema).min(18).max(20),
 });
 
 export type Form2Values = z.infer<typeof form2Schema>;
@@ -38,6 +38,8 @@ export const DOCUMENT_NAMES = [
   "Aadhar Card Xerox",
   "APAAR/ABC ID Xerox",
   "Passport Size 2 Photo",
+  "JEE Score Card",
+  "CET Score Card",
 ] as const;
 
 /**
@@ -87,7 +89,10 @@ export function isDocumentRequiredForCategory(
     docLower.includes("aadhar") ||
     docLower.includes("apaar") ||
     docLower.includes("photo") ||
-    docLower.includes("gap")
+    docLower.includes("gap") ||
+    docLower.includes("jee") ||
+    docLower.includes("cet") ||
+    docLower.includes("score card")
   ) {
     return true;
   }

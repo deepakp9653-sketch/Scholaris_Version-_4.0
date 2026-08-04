@@ -532,6 +532,8 @@ function renderForm2(d: PrintFormData): string {
     { id: "16", title: "Aadhar Card Xerox" },
     { id: "17", title: "APAAR/ABC ID xerox" },
     { id: "18", title: "Passport Size 2 Photo" },
+    { id: "19", title: "JEE Score Card" },
+    { id: "20", title: "CET Score Card" },
   ];
 
   let rows = "";

@@ -76,7 +76,8 @@ export function PipelineKanban({ records }: PipelineKanbanProps) {
               </div>
               <div className="space-y-2">
                 {items.map((rec) => {
-                  const name = [rec.studentProfile?.fullNameSurname, rec.studentProfile?.fullNameFirst]
+                  const father = rec.studentProfile?.fullNameFather || rec.studentProfile?.fatherName;
+                  const name = [rec.studentProfile?.fullNameSurname, rec.studentProfile?.fullNameFirst, father]
                     .filter(Boolean)
                     .join(" ") || "Unnamed";
 

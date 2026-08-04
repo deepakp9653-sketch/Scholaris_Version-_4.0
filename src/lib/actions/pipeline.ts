@@ -12,6 +12,8 @@ export interface PipelineRecord {
   studentProfile: {
     fullNameSurname: string | null;
     fullNameFirst: string | null;
+    fullNameFather?: string | null;
+    fatherName?: string | null;
     branchCourse: string | null;
     category: string | null;
     mobileNo: string | null;
@@ -55,7 +57,7 @@ export async function getPipelineData(filters?: {
       orderBy: { updatedAt: "desc" },
       take: 100,
       include: {
-        studentProfile: { select: { fullNameSurname: true, fullNameFirst: true, branchCourse: true, category: true, mobileNo: true } },
+        studentProfile: { select: { fullNameSurname: true, fullNameFirst: true, fullNameFather: true, fatherName: true, branchCourse: true, category: true, mobileNo: true } },
         feeRecord: { select: { feeStatus: true, totalFeeAmount: true, amountPaid: true } },
       },
     });

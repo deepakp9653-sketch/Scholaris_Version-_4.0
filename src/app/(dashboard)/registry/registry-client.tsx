@@ -17,6 +17,8 @@ interface AdmittedRecord {
   studentProfile: {
     fullNameSurname: string | null;
     fullNameFirst: string | null;
+    fullNameFather?: string | null;
+    fatherName?: string | null;
     branchCourse: string | null;
     category: string | null;
     mobileNo: string | null;
@@ -59,7 +61,8 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
   const filtered = initialRecords.filter((r) => {
     // 1. Text Search Filter
     if (search) {
-      const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst]
+      const father = r.studentProfile?.fullNameFather || r.studentProfile?.fatherName;
+      const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst, father]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -185,7 +188,8 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
             </thead>
             <tbody className="divide-y divide-border/60">
               {filtered.map((record) => {
-                const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst]
+                const father = record.studentProfile?.fullNameFather || record.studentProfile?.fatherName;
+                const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst, father]
                   .filter(Boolean)
                   .join(" ") || "Unnamed Student";
 

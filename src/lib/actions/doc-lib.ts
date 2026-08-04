@@ -183,8 +183,9 @@ export async function getDocLibStudentDocuments(query?: {
     });
 
     let result: StudentDocOverview[] = records.map((r) => {
+      const father = r.studentProfile?.fullNameFather || r.studentProfile?.fatherName;
       const studentName =
-        [r.studentProfile?.fullNameFirst, r.studentProfile?.fullNameSurname]
+        [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst, father]
           .filter(Boolean)
           .join(" ") ||
         r.capCandidate?.candidateName ||

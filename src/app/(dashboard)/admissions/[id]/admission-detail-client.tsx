@@ -48,7 +48,8 @@ interface AdmissionDetailClientProps {
 }
 
 export function AdmissionDetailClient({ record, id }: AdmissionDetailClientProps) {
-  const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst]
+  const father = record.studentProfile?.fullNameFather || record.studentProfile?.fatherName;
+  const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst, father]
     .filter(Boolean)
     .join(" ") || "Unnamed Candidate";
 

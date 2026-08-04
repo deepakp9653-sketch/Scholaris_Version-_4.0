@@ -23,7 +23,7 @@ export async function getPendingVerifications() {
     },
     orderBy: { updatedAt: "desc" },
     include: {
-      studentProfile: { select: { fullNameSurname: true, fullNameFirst: true, branchCourse: true, category: true } },
+      studentProfile: { select: { fullNameSurname: true, fullNameFirst: true, fullNameFather: true, fatherName: true, branchCourse: true, category: true } },
       feeRecord: { select: { feeStatus: true, totalFeeAmount: true, amountPaid: true } },
       capCandidate: { select: { candidateName: true } },
     },
@@ -50,6 +50,8 @@ export async function getAdmittedRecords(search?: string) {
     where.OR = [
       { studentProfile: { fullNameSurname: { contains: search, mode: "insensitive" } } },
       { studentProfile: { fullNameFirst: { contains: search, mode: "insensitive" } } },
+      { studentProfile: { fullNameFather: { contains: search, mode: "insensitive" } } },
+      { studentProfile: { fatherName: { contains: search, mode: "insensitive" } } },
       { studentProfile: { branchCourse: { contains: search, mode: "insensitive" } } },
     ];
   }
@@ -64,6 +66,8 @@ export async function getAdmittedRecords(search?: string) {
         select: {
           fullNameSurname: true,
           fullNameFirst: true,
+          fullNameFather: true,
+          fatherName: true,
           branchCourse: true,
           category: true,
           mobileNo: true,

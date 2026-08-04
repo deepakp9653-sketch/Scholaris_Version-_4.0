@@ -477,7 +477,11 @@ export default function DocLibPage() {
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Full Name (Surname First):</span>
                         <span className="font-semibold text-foreground text-sm">
-                          {selectedStudent.studentProfile?.fullNameSurname || selectedStudent.studentName}
+                          {[
+                            selectedStudent.studentProfile?.fullNameSurname,
+                            selectedStudent.studentProfile?.fullNameFirst,
+                            selectedStudent.studentProfile?.fullNameFather || selectedStudent.studentProfile?.fatherName
+                          ].filter(Boolean).join(" ") || selectedStudent.studentName}
                         </span>
                       </div>
                       <div>

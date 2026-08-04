@@ -19,6 +19,8 @@ interface PendingRecord {
   studentProfile: {
     fullNameSurname: string | null;
     fullNameFirst: string | null;
+    fullNameFather?: string | null;
+    fatherName?: string | null;
     branchCourse: string | null;
     category: string | null;
   } | null;
@@ -64,7 +66,8 @@ export function FinalVerificationClient({ pending }: FinalVerificationClientProp
 
   const filteredPending = pending.filter((r) => {
     if (!search.trim()) return true;
-    const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst].filter(Boolean).join(" ") || r.capCandidate?.candidateName || "";
+    const father = r.studentProfile?.fullNameFather || r.studentProfile?.fatherName;
+    const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst, father].filter(Boolean).join(" ") || r.capCandidate?.candidateName || "";
     return name.toLowerCase().includes(search.toLowerCase()) || (r.studentProfile?.branchCourse || "").toLowerCase().includes(search.toLowerCase());
   });
 
@@ -109,7 +112,8 @@ export function FinalVerificationClient({ pending }: FinalVerificationClientProp
       ) : (
         <div className="space-y-3">
           {filteredPending.map((record) => {
-            const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst]
+            const father = record.studentProfile?.fullNameFather || record.studentProfile?.fatherName;
+            const name = [record.studentProfile?.fullNameSurname, record.studentProfile?.fullNameFirst, father]
               .filter(Boolean)
               .join(" ") || record.capCandidate?.candidateName || "Unnamed Candidate";
 

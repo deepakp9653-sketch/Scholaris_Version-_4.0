@@ -25,7 +25,8 @@ export function PipelineClient({ records, filterOptions }: PipelineClientProps) 
   const filtered = useMemo(() => {
     return records.filter((r) => {
       if (search) {
-        const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst]
+        const father = r.studentProfile?.fullNameFather || r.studentProfile?.fatherName;
+        const name = [r.studentProfile?.fullNameSurname, r.studentProfile?.fullNameFirst, father]
           .filter(Boolean).join(" ").toLowerCase();
         if (!name.includes(search.toLowerCase())) return false;
       }

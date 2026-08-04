@@ -102,7 +102,8 @@ export function PipelineTable({ records }: PipelineTableProps) {
           </thead>
           <tbody>
             {records.map((rec) => {
-              const name = [rec.studentProfile?.fullNameSurname, rec.studentProfile?.fullNameFirst]
+              const father = rec.studentProfile?.fullNameFather || rec.studentProfile?.fatherName;
+              const name = [rec.studentProfile?.fullNameSurname, rec.studentProfile?.fullNameFirst, father]
                 .filter(Boolean)
                 .join(" ") || "Unnamed";
               const isIncomplete = rec.status !== "ADMITTED";

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { isDocumentRequiredForCategory } from "@/lib/forms/form2-checklist";
 
 export async function GET(req: NextRequest) {
   await requireAuth();
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
       include: {
         studentProfile: true,
         form1Application: true,
-        form3Eligibility: true,
+        form3Eligibility: { include: { educationalGaps: true } },
         form5Library: true,
         capCandidate: true,
         feeRecord: true,
@@ -346,9 +347,28 @@ export async function GET(req: NextRequest) {
       const sscOut = f1?.sscGrandTotalOutOf ?? 500;
       const sscPct = f1?.sscPercentage ? Number(f1.sscPercentage).toFixed(2) : (sscObt != null && sscOut ? ((Number(sscObt) / Number(sscOut)) * 100).toFixed(2) : null);
 
+      // Category & Non-creamy layer certificate status
+      const categoryVal = sp?.category || f1?.admissionCategory || cap?.category || "OPEN";
+      const isNclRequired = isDocumentRequiredForCategory("Non Creamy-layer (If Applicable)", categoryVal);
+      const nclStatus = isNclRequired ? "Yes" : "No";
+
+      // Educational Gap
+      const gaps = (f3 as any)?.educationalGaps;
+      const gapDetailsStr = (Array.isArray(gaps) && gaps.length > 0 && gaps[0]?.lastExamName)
+        ? `${gaps[0].lastExamName}${gaps[0].monthYearPassing ? ' (' + gaps[0].monthYearPassing + ')' : ''}`
+        : f3?.qualCourseName?.includes("Gap")
+        ? "1 Year Educational Gap"
+        : null;
+
       // Handicapped & Minority
       const phStatus = f3?.physicallyDisabledYn ? (f3?.physicallyDisabledType ? "P1" : "P1") : "N";
       const minStatus = f3?.minorityYn ? "Linguistic" : "No";
+
+      // Helper for OPTIONAL columns (22 to 33): Never output a dash if empty/null, return "" instead
+      const optFmt = (val: any): string => {
+        if (val === null || val === undefined || val === "" || val === "-") return "";
+        return String(val);
+      };
 
       const rowValues = [
         idx + 1,                                                 // 1. Sr. No.
@@ -358,8 +378,8 @@ export async function GET(req: NextRequest) {
         fmt(sp?.motherName),                                     // 5. Mother Name
         fmt(dob),                                                // 6. Birth Date
         fmt(sex),                                                // 7. Sex
-        fmt(sp?.category || f1?.admissionCategory || cap?.category || "OPEN"), // 8. Category
-        "No",                                                    // 9. Non-creamy layer
+        fmt(categoryVal),                                        // 8. Category
+        nclStatus,                                               // 9. Non-creamy layer certificate status? (Yes if required for category, else No)
         fmt(f3?.qualUniversity || "Maharashtra State Board"),   // 10. Qualifying Board
         "H.S.C",                                                 // 11. Qualifying Exam Name
         fmt(hscSeatNo),                                          // 12. HSC Seat No. (Qualifying Seat No)
@@ -369,21 +389,22 @@ export async function GET(req: NextRequest) {
         fmt(sp?.permanentAddress || f5?.localAddress),           // 16. Address
         phStatus,                                                // 17. Physically Handicapped
         minStatus,                                               // 18. Is Minority
-        "-",                                                     // 19. ABC ID (empty when not provided)
+        "",                                                      // 19. ABC ID (empty when not provided, no dash)
         fmt(sp?.mobileNo),                                       // 20. Mobile No
         fmt(sp?.email),                                          // 21. Email ID
-        f3?.minorityYn ? fmt(f3?.religion) : "-",                // 22. Minority Details
-        fmt(sp?.admissionReceiptNo),                             // 23. PRN / Roll
-        "-",                                                     // 24. Gap Details
-        "Maharashtra State Board",                               // 25. Last Board
-        "S.S.C",                                                 // 26. Last Exam Name
-        fmt(sscPct),                                             // 27. Last Exam %
-        fmt(f1?.sscYearOfPassing),                               // 28. Last Exam Year
-        "-",                                                     // 29. Aadhar No (encrypted or not provided)
-        fmt(sp?.religionCaste || f3?.religion),                  // 30. Religion
-        r.voterRegisteredYn ? "Yes" : "No",                     // 31. Registered in Voter List
-        r.epicCardYn ? "Yes" : "No",                             // 32. EPIC Card
-        fmt(r.epicNumber),                                       // 33. EPIC Number
+        // --- OPTIONAL FIELDS (Cols 22 to 33): Completely EMPTY for all rows ---
+        "",                                                      // 22. Minority Details
+        "",                                                      // 23. PRN for General Register Number
+        "",                                                      // 24. Gap Details (Only If Applicable)
+        "",                                                      // 25. Last exam's Board / University Name in Full
+        "",                                                      // 26. Last Exam Name
+        "",                                                      // 27. Last Exam Percentage / Result
+        "",                                                      // 28. Last Exam Passing Year
+        "",                                                      // 29. Aadhar No.
+        "",                                                      // 30. Religion
+        "",                                                      // 31. Are you Registered your Name in voter list?
+        "",                                                      // 32. Do you have EPIC Card?
+        "",                                                      // 33. If yes, EPIC Number
       ];
 
       const rowNum = idx + 11;

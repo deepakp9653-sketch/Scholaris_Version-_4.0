@@ -427,7 +427,7 @@ export function WizardClient({ capCandidateId, capImportBanner, initialRecord }:
         correspondenceAddress: sp.correspondenceAddress ?? currentValues.correspondenceAddress ?? null,
         correspondencePin: sp.correspondencePin ?? currentValues.correspondencePin ?? null,
         branchCourse: sp.branchCourse ?? currentValues.branchCourse ?? f1.officeUseBranch ?? "Computer Engineering",
-        admissionQuota: f1.admissionQuota ?? currentValues.admissionQuota ?? null,
+        admissionQuota: f1.admissionQuota || currentValues.admissionQuota || "CAP_CET_AIEEE",
         admissionCategory: f1.admissionCategory ?? sp.category ?? currentValues.admissionCategory ?? null,
         homeUniversity: f1.homeUniversity ?? currentValues.homeUniversity ?? null,
         motherTongue: f1.motherTongue ?? currentValues.motherTongue ?? null,

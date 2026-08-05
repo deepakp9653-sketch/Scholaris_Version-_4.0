@@ -375,7 +375,7 @@ export function Form1Step({ form, autoFilledFields }: Form1StepProps) {
               <AutoFillBadge visible={autoFilledFields.has("admissionQuota")} />
             </Label>
             <Select
-              value={admissionQuota ?? ""}
+              value={admissionQuota || "CAP_CET_AIEEE"}
               onValueChange={(v: string) => setValue("admissionQuota", v as any)}
             >
               <SelectTrigger><SelectValue placeholder="Select quota" /></SelectTrigger>

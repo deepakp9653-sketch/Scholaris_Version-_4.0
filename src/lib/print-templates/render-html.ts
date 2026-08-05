@@ -36,6 +36,15 @@ function formatPct(val: unknown): string {
   return (Math.round(num * 100) / 100).toFixed(2);
 }
 
+function formatMark(val: unknown): string {
+  if (val === null || val === undefined || val === "") return "";
+  const num = Number(val);
+  if (isNaN(num)) return String(val);
+  // Cap at 3 decimal places to remove floating-point artifacts like .15000000000001
+  const str = num.toFixed(3);
+  return str.replace(/(\.\d*?[1-9])0+$/, "$1").replace(/\.0+$/, "");
+}
+
 function formatAcademicYear(yearStartVal: unknown, yearEndVal: unknown) {
   let start = String(yearStartVal || "26").trim();
   if (start.length === 4) start = start.slice(2);
@@ -347,10 +356,10 @@ function renderForm1(d: PrintFormData): string {
         <tbody>
           <tr>
             <td style="font-weight:bold">Obtained</td>
-            <td><span class="val">${esc(f.cetPhysicsObtained)}</span></td>
-            <td><span class="val">${esc(f.cetChemistryObtained)}</span></td>
-            <td><span class="val">${esc(f.cetMathsObtained)}</span></td>
-            <td><span class="val" style="font-weight:900">${esc(f.cetPcmTotalObtained)}</span></td>
+            <td><span class="val">${esc(formatMark(f.cetPhysicsObtained))}</span></td>
+            <td><span class="val">${esc(formatMark(f.cetChemistryObtained))}</span></td>
+            <td><span class="val">${esc(formatMark(f.cetMathsObtained))}</span></td>
+            <td><span class="val" style="font-weight:900">${esc(formatMark(f.cetPcmTotalObtained))}</span></td>
           </tr>
           <tr>
             <td style="font-weight:bold">Out of</td>
@@ -369,7 +378,7 @@ function renderForm1(d: PrintFormData): string {
       </div>
       <div class="form-row mt-4">
         <span class="form-label bold">c) AIEEE Marks :</span>
-        <span class="form-value medium">${esc(f.aieeeMarks)}</span>
+        <span class="form-value medium">${esc(formatMark(f.aieeeMarks))}</span>
       </div>
     </div>
   </div>`;

@@ -114,7 +114,7 @@ export const FORM1_DEFAULT_VALUES: Form1Values = {
   permanentPin: null,
   permanentTelNo: null,
   branchCourse: null,
-  admissionQuota: null,
+  admissionQuota: "CAP_CET_AIEEE",
   admissionCategory: null,
   admissionYearStart: 2026,
   admissionYearEnd: 2027,

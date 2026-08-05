@@ -136,14 +136,14 @@ export function FinalVerificationClient({ pending }: FinalVerificationClientProp
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="flex items-center justify-between py-3 px-5 border-t border-border/40 bg-muted/20">
+                <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3 px-5 border-t border-border/40 bg-muted/20">
                   <FeeStatusBadge
                     feeStatus={record.feeRecord?.feeStatus ?? null}
                     totalFee={record.feeRecord?.totalFeeAmount ? Number(record.feeRecord.totalFeeAmount) : null}
                     amountPaid={record.feeRecord?.amountPaid ? Number(record.feeRecord.amountPaid) : null}
                   />
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <Link href={`/admissions/${record.id}`}>
                       <Button size="sm" variant="outline" className="h-8 text-xs gap-1">
                         <Eye className="w-3.5 h-3.5" /> Overview

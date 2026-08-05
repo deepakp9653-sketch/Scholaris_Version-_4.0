@@ -24,7 +24,7 @@ export async function getPrintFormData(recordId: string): Promise<PrintFormData 
       studentProfile: true,
       form1Application: true,
       form2Checklist: { include: { items: { orderBy: { srNo: "asc" } } } },
-      form3Eligibility: true,
+      form3Eligibility: { include: { educationalGaps: true } },
       form4Affidavit: true,
       form5Library: true,
       feeRecord: true,
@@ -54,12 +54,27 @@ export async function getPrintFormData(recordId: string): Promise<PrintFormData 
     student.aadharNoDecrypted = "";
   }
 
+  const form3Obj: Record<string, unknown> = {
+    ...(record.form3Eligibility as Record<string, unknown> ?? {}),
+  };
+
+  // Automatically map educational gap details from relational table if present
+  const gaps = (record.form3Eligibility as any)?.educationalGaps;
+  if (Array.isArray(gaps) && gaps.length > 0) {
+    const g = gaps[0];
+    if (!form3Obj.gapLastExamName) form3Obj.gapLastExamName = g.lastExamName;
+    if (!form3Obj.gapSeatNo) form3Obj.gapSeatNo = g.seatNo;
+    if (!form3Obj.gapMonthYearPassing) form3Obj.gapMonthYearPassing = g.monthYearPassing;
+    if (!form3Obj.gapPercentage) form3Obj.gapPercentage = g.percentage;
+    if (!form3Obj.gapClassGrade) form3Obj.gapClassGrade = g.classGrade;
+  }
+
   return {
     record: { id: record.id, status: record.status, createdAt: record.createdAt },
     student,
     form1: record.form1Application as Record<string, unknown> ?? {},
     form2: (record.form2Checklist ?? {}) as Record<string, unknown>,
-    form3: record.form3Eligibility as Record<string, unknown> ?? {},
+    form3: form3Obj,
     form4: record.form4Affidavit as Record<string, unknown> ?? {},
     form5: record.form5Library as Record<string, unknown> ?? {},
     checklistItems: record.form2Checklist?.items.map(i => ({

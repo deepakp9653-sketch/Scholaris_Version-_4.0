@@ -151,7 +151,17 @@ export function Form3Step({ form, autoFilledFields }: Form3StepProps) {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="flex items-center gap-3">
-            <Checkbox checked={!!watch("minorityYn")} onCheckedChange={(c: any) => setValue("minorityYn", c === true)} />
+            <Checkbox 
+              checked={!!watch("minorityYn")} 
+              onCheckedChange={(c: any) => {
+                const isChecked = c === true;
+                setValue("minorityYn", isChecked);
+                if (!isChecked) {
+                  setValue("minorityLinguistic", false);
+                  setValue("minorityReligion", false);
+                }
+              }} 
+            />
             <Label className="text-sm">Minority?</Label>
           </div>
           {watch("minorityYn") && (

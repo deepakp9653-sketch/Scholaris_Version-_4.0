@@ -52,7 +52,10 @@ export async function ensureDbCalibrated() {
       }
     })();
   }
-  await calibrationPromise;
+  await Promise.race([
+    calibrationPromise,
+    new Promise((resolve) => setTimeout(resolve, 8000))
+  ]);
 }
 
 function createPrismaClient() {
@@ -63,9 +66,9 @@ function createPrismaClient() {
     activePool = new Pool({
       connectionString: cleanUrl,
       ssl: { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
+      max: 15,
+      idleTimeoutMillis: 60000,
+      connectionTimeoutMillis: 30000,
     });
     activePool.on("error", (err) => {
       console.warn("Postgres pool idle network note:", err.message);

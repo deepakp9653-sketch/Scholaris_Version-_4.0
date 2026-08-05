@@ -28,6 +28,10 @@ export interface StudentDocOverview {
   totalDocuments: number;
   verifiedDocuments: number;
   studentProfile: any;
+  form1?: any;
+  form3?: any;
+  form5?: any;
+  capCandidate?: any;
   feeRecord: any;
   createdAt: Date;
   documents: {
@@ -172,6 +176,9 @@ export async function getDocLibStudentDocuments(query?: {
       take: 100,
       include: {
         studentProfile: true,
+        form1Application: true,
+        form3Eligibility: { include: { educationalGaps: true } },
+        form5Library: true,
         capCandidate: true,
         feeRecord: true,
         documentUploads: {
@@ -208,6 +215,8 @@ export async function getDocLibStudentDocuments(query?: {
 
       const verifiedCount = docs.filter((d) => d.status === "VERIFIED").length;
 
+      const serialize = <T>(obj: T): T | null => (obj ? JSON.parse(JSON.stringify(obj)) : null);
+
       return {
         recordId: r.id,
         studentName,
@@ -218,7 +227,11 @@ export async function getDocLibStudentDocuments(query?: {
         status: r.status,
         totalDocuments: docs.length,
         verifiedDocuments: verifiedCount,
-        studentProfile: r.studentProfile,
+        studentProfile: serialize(r.studentProfile),
+        form1: serialize(r.form1Application),
+        form3: serialize(r.form3Eligibility),
+        form5: serialize(r.form5Library),
+        capCandidate: serialize(r.capCandidate),
         feeRecord: r.feeRecord
           ? {
               feeStatus: r.feeRecord.feeStatus,

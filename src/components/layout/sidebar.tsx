@@ -117,7 +117,7 @@ export function Sidebar({ userName }: { userName?: string | null }) {
 
   return (
     <>
-      <aside className="flex h-full w-[220px] flex-col bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden md:flex h-full w-[220px] flex-col bg-sidebar border-r border-sidebar-border shrink-0">
         {/* Brand */}
         <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary shadow-sm shrink-0">

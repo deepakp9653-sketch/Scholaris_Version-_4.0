@@ -652,6 +652,17 @@ function renderForm3(d: PrintFormData): string {
   const rollNoVal = esc(f.rollNo || s.rollNo || f.officeReceiptNo || "");
   const courseYear = String(f.courseYear || "1st").trim();
 
+  const gapLastExamName = esc(f.gapLastExamName || "");
+  const gapSeatNo = esc(f.gapSeatNo || "");
+  const gapMonthYearPassing = esc(f.gapMonthYearPassing || "");
+  const gapPercentage = f.gapPercentage ? `${formatPct(f.gapPercentage)}%` : "";
+  const gapClassGrade = esc(f.gapClassGrade || "");
+
+  const isMinority = f.minorityYn === true || (f.minorityYn !== false && Boolean(f.minorityLinguistic || f.minorityReligion));
+  const isLinguistic = isMinority && Boolean(f.minorityLinguistic || String(f.minorityType || "").toLowerCase().includes("ling"));
+  const isReligious = isMinority && Boolean(f.minorityReligion || String(f.minorityType || "").toLowerCase().includes("rel") || (isMinority && f.religion));
+  const minorityReligionText = (isMinority && isReligious) ? esc(f.religion || "✓") : "";
+
   // Page 4
   const page4 = `<div class="page-container">
     <!-- Header -->
@@ -815,21 +826,21 @@ function renderForm3(d: PrintFormData): string {
       <table class="form-table" style="margin-top:3px;width:100%">
         <thead><tr><th>Last Examination Name</th><th>Seat No.</th><th>Month &amp; Year of Passing</th><th>Percentage</th><th>Class/Grade</th></tr></thead>
         <tbody><tr style="height:26px">
-          <td style="height:26px;min-height:26px">${f.gapLastExamName ? `<span class="val">${esc(f.gapLastExamName)}</span>` : "&nbsp;"}</td>
-          <td style="height:26px;min-height:26px">${f.gapSeatNo ? `<span class="val">${esc(f.gapSeatNo)}</span>` : "&nbsp;"}</td>
-          <td style="height:26px;min-height:26px">${f.gapMonthYearPassing ? `<span class="val">${esc(f.gapMonthYearPassing)}</span>` : "&nbsp;"}</td>
-          <td style="height:26px;min-height:26px">${f.gapPercentage ? `<span class="val">${esc(f.gapPercentage)}%</span>` : "&nbsp;"}</td>
-          <td style="height:26px;min-height:26px">${f.gapClassGrade ? `<span class="val">${esc(f.gapClassGrade)}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${gapLastExamName ? `<span class="val">${gapLastExamName}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${gapSeatNo ? `<span class="val">${gapSeatNo}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${gapMonthYearPassing ? `<span class="val">${gapMonthYearPassing}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${gapPercentage ? `<span class="val">${gapPercentage}</span>` : "&nbsp;"}</td>
+          <td style="height:26px;min-height:26px">${gapClassGrade ? `<span class="val">${gapClassGrade}</span>` : "&nbsp;"}</td>
         </tr></tbody>
       </table>
     </div>
 
     <!-- 16. Minority -->
     <div style="margin-top:6px">
-      <span class="form-label bold">16. Are you belong to the Minority ?</span> Yes / No ( if yes please specify type which has given below)<br/>
+      <span class="form-label bold">16. Are you belong to the Minority ?</span> ${isMinority ? "<u><strong>Yes</strong></u> / No" : "Yes / <u><strong>No</strong></u>"} ( if yes please specify type which has given below)<br/>
       <div style="margin-left:200px;margin-top:2px;display:flex;gap:15px;align-items:center">
-        <span>Linguistic:</span> <div style="width:30px;height:20px;border:1px solid #000;text-align:center;font-weight:bold">${esc(f.minorityLinguistic || "")}</div>
-        <span>Religion:</span> <div style="width:30px;height:20px;border:1px solid #000;text-align:center;font-weight:bold">${esc(f.minorityReligion || "")}</div>
+        <span>Linguistic:</span> <div style="width:30px;height:20px;border:1px solid #000;text-align:center;font-weight:bold;line-height:18px">${isLinguistic ? "✓" : ""}</div>
+        <span>Religion:</span> <div style="width:30px;height:20px;border:1px solid #000;text-align:center;font-weight:bold;line-height:18px">${minorityReligionText}</div>
       </div>
     </div>
 

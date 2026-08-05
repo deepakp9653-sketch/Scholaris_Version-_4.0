@@ -122,7 +122,20 @@ export function CapCandidateTable({ candidates, total, page, pageSize, batchId, 
                     <td className="py-2 px-3 font-mono text-muted-foreground">{c.seatTypeCode ?? "—"}</td>
                     <td className="py-2 px-3 text-right font-mono">{c.meritNo ?? "—"}</td>
                     <td className="py-2 px-3 text-right font-mono">
-                      {c.score ? Number(c.score).toFixed(2) : "—"}
+                      {c.score ? (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="font-semibold text-foreground">{Number(c.score).toFixed(2)}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${
+                            c.scoreType === "JEE_MAIN" || (c.seatTypeCode && (c.seatTypeCode.includes("AI") || c.seatTypeCode.toUpperCase().includes("JEE")))
+                              ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800"
+                              : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                          }`}>
+                            {c.scoreType === "JEE_MAIN" || (c.seatTypeCode && (c.seatTypeCode.includes("AI") || c.seatTypeCode.toUpperCase().includes("JEE"))) ? "JEE Score" : "CET Score"}
+                          </span>
+                        </div>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="py-2 px-3 text-center">
                       {c.statusSymbol && (

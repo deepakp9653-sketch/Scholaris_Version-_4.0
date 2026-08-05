@@ -126,10 +126,15 @@ export function WizardClient({ capCandidateId, capImportBanner, initialRecord }:
       officeUseBranch: deptName.includes("Civil") ? "Civil" : deptName.includes("Comp") ? "Comp" : deptName.includes("Electronics") || deptName.includes("ETC") ? "ETC" : deptName.includes("Information") || deptName.includes("IT") ? "IT" : deptName.includes("Mech") ? "Mech" : deptName.includes("Elect") ? "Elect" : "Comp",
     };
 
-    if (candidate.scoreType === "MHT_CET") {
-      f1Values.cetPcmTotalObtained = candidate.score ? Number(candidate.score) : null;
-    } else if (candidate.scoreType === "JEE_MAIN") {
+    const isJeeScore =
+      candidate.scoreType === "JEE_MAIN" ||
+      Boolean(candidate.seatTypeCode && (candidate.seatTypeCode.includes("AI") || candidate.seatTypeCode.toUpperCase().includes("JEE")));
+
+    if (isJeeScore) {
       f1Values.aieeeMarks = candidate.score ? String(candidate.score) : null;
+      f1Values.cetPcmTotalObtained = null;
+    } else {
+      f1Values.cetPcmTotalObtained = candidate.score ? Number(candidate.score) : null;
     }
 
     form1.reset({ ...FORM1_DEFAULT_VALUES, ...f1Values });

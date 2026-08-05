@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FeeStatusBadge } from "@/components/fee/fee-status-badge";
 import { formatClientDate } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { Calendar, Filter } from "lucide-react";
+import { Calendar, Filter, FileSpreadsheet } from "lucide-react";
 
 interface AdmittedRecord {
   id: string;
@@ -51,6 +51,7 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "yesterday" | "custom">("all");
   const [customDate, setCustomDate] = useState("");
+  const [selectedExportBranch, setSelectedExportBranch] = useState("ALL");
 
   const todayStr = getLocalYYYYMMDD(new Date());
 
@@ -90,10 +91,36 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
       {/* Header & Filter Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-xl font-semibold text-foreground">
-            Admitted Students Registry
-          </h1>
-          <p className="text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-heading text-xl font-semibold text-foreground">
+              Admitted Students Registry
+            </h1>
+            <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 p-1 rounded-lg border border-emerald-600/30">
+              <select
+                value={selectedExportBranch}
+                onChange={(e) => setSelectedExportBranch(e.target.value)}
+                className="h-7 rounded border border-emerald-600/30 bg-background px-2 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-600"
+              >
+                <option value="ALL">All Branches</option>
+                <option value="COMPUTER">Computer Engineering</option>
+                <option value="IT">Information Technology</option>
+                <option value="ENTC">Electronics & Telecomm (E&TC)</option>
+                <option value="MECHANICAL">Mechanical Engineering</option>
+                <option value="CIVIL">Civil Engineering</option>
+                <option value="AIDS">AIDS / Data Science</option>
+              </select>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.open(`/api/registry/export-excel?branch=${selectedExportBranch}`, "_blank")}
+                className="h-7 text-xs gap-1.5 border-emerald-600/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 font-semibold"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                Export Excel (.xlsx)
+              </Button>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {filtered.length} admitted student{filtered.length !== 1 ? "s" : ""}
             {dateFilter !== "all" || search ? ` (filtered from ${initialRecords.length})` : ""}
           </p>
@@ -158,7 +185,7 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
             placeholder="Search by name or branch..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-xs h-8 text-xs"
+            className="w-full sm:w-60 h-8 text-xs"
           />
         </div>
       </div>

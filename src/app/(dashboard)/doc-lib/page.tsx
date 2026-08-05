@@ -478,58 +478,58 @@ export default function DocLibPage() {
                         <span className="text-muted-foreground block text-[11px]">Full Name (Surname First):</span>
                         <span className="font-semibold text-foreground text-sm">
                           {[
-                            selectedStudent.studentProfile?.fullNameSurname,
-                            selectedStudent.studentProfile?.fullNameFirst,
-                            selectedStudent.studentProfile?.fullNameFather || selectedStudent.studentProfile?.fatherName
+                            selectedStudent.studentProfile?.fullNameSurname || selectedStudent.form1?.fullNameSurname,
+                            selectedStudent.studentProfile?.fullNameFirst || selectedStudent.form1?.fullNameFirst,
+                            selectedStudent.studentProfile?.fullNameFather || selectedStudent.studentProfile?.fatherName || selectedStudent.form1?.fullNameFather || selectedStudent.form1?.fatherName
                           ].filter(Boolean).join(" ") || selectedStudent.studentName}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">First Name:</span>
                         <span className="font-semibold text-foreground">
-                          {selectedStudent.studentProfile?.fullNameFirst || "-"}
+                          {selectedStudent.studentProfile?.fullNameFirst || selectedStudent.form1?.fullNameFirst || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Father's Name:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.fullNameFather || "-"}
+                          {selectedStudent.studentProfile?.fullNameFather || selectedStudent.studentProfile?.fatherName || selectedStudent.form1?.fullNameFather || selectedStudent.form1?.fatherName || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Mother's Name:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.fullNameMother || "-"}
+                          {selectedStudent.studentProfile?.motherName || selectedStudent.form1?.motherName || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Gender:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.gender || "-"}
+                          {selectedStudent.studentProfile?.gender || selectedStudent.form1?.gender || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Date of Birth:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.dateOfBirth ? new Date(selectedStudent.studentProfile.dateOfBirth).toLocaleDateString("en-GB") : "-"}
+                          {selectedStudent.studentProfile?.dateOfBirth ? new Date(selectedStudent.studentProfile.dateOfBirth).toLocaleDateString("en-GB") : selectedStudent.form1?.dateOfBirth ? new Date(selectedStudent.form1.dateOfBirth).toLocaleDateString("en-GB") : "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Blood Group:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.bloodGroup || "-"}
+                          {selectedStudent.studentProfile?.bloodGroup || selectedStudent.form1?.bloodGroup || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Cast Category:</span>
                         <span className="font-semibold text-primary">
-                          {selectedStudent.studentProfile?.category || selectedStudent.category || "-"}
+                          {selectedStudent.studentProfile?.category || selectedStudent.form1?.admissionCategory || selectedStudent.category || "-"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-muted-foreground block text-[11px]">Religion & Nationality:</span>
+                        <span className="text-muted-foreground block text-[11px]">Religion &amp; Nationality:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.religion || "Hindu"} • {selectedStudent.studentProfile?.nationality || "Indian"}
+                          {selectedStudent.studentProfile?.religionCaste || selectedStudent.form1?.religionCaste || "Hindu"} • Indian
                         </span>
                       </div>
                     </div>
@@ -544,25 +544,25 @@ export default function DocLibPage() {
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Student Mobile No:</span>
                         <span className="font-semibold text-foreground">
-                          {selectedStudent.studentProfile?.mobileNo || "-"}
+                          {selectedStudent.studentProfile?.mobileNo || selectedStudent.form1?.mobileNo || selectedStudent.form5?.studentMobileNo || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Email Address:</span>
                         <span className="font-medium text-foreground lowercase">
-                          {selectedStudent.studentProfile?.email || "-"}
+                          {selectedStudent.studentProfile?.email || selectedStudent.form1?.email || selectedStudent.form5?.email || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Parent/Guardian Tel No:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.parentMobileNo || selectedStudent.studentProfile?.correspondenceMobile || "-"}
+                          {selectedStudent.studentProfile?.parentsTelNo || selectedStudent.studentProfile?.contactTelNo || selectedStudent.studentProfile?.permanentTelNo || selectedStudent.form5?.parentsTelNo || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-[11px]">Permanent Address:</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.permanentAddress || "-"}, {selectedStudent.studentProfile?.permanentCity || "PUNE"} - {selectedStudent.studentProfile?.permanentPin || ""}
+                          {selectedStudent.studentProfile?.permanentAddress || selectedStudent.form1?.permanentAddress || "-"}, {selectedStudent.studentProfile?.permanentCity || selectedStudent.form1?.permanentCity || "PUNE"} - {selectedStudent.studentProfile?.permanentPin || selectedStudent.form1?.permanentPin || ""}
                         </span>
                       </div>
                     </div>
@@ -574,38 +574,86 @@ export default function DocLibPage() {
                       <FileSpreadsheet className="w-4 h-4 text-primary" /> Academic Qualifications &amp; Exam Marks
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {(() => {
+                        const f1 = selectedStudent.form1;
+                        const sp = selectedStudent.studentProfile;
+
+                        // SSC
+                        const sscObt = f1?.sscGrandTotalObtained ?? f1?.sscMarksObtained ?? sp?.sscMarksObtained ?? sp?.sscGrandTotalObtained;
+                        const sscOut = f1?.sscGrandTotalOutOf ?? f1?.sscMarksOutOf ?? sp?.sscMarksOutOf ?? 500;
+                        const sscPct = f1?.sscPercentage ?? sp?.sscPercentage ?? (sscObt != null && sscOut ? (Number(sscObt) / Number(sscOut)) * 100 : null);
+                        const sscText = sscObt != null ? `${sscObt} / ${sscOut}` : "-";
+                        const sscPctText = sscPct ? ` (${Number(sscPct).toFixed(2)}%)` : "";
+
+                        // HSC
+                        const pcmPhysics = f1?.hscPhysicsObtained ?? sp?.hscPhysicsMarks;
+                        const pcmMath = f1?.hscMathsObtained ?? sp?.hscMathMarks;
+                        const pcmChem = f1?.hscChemistryObtained ?? sp?.hscChemistryMarks;
+                        const pcmSum = (pcmPhysics != null && pcmMath != null && pcmChem != null)
+                          ? (Number(pcmPhysics) + Number(pcmMath) + Number(pcmChem))
+                          : null;
+
+                        const hscObt = f1?.hscGrandTotalObtained ?? f1?.hscPcmTotalObtained ?? sp?.hscMarksObtained ?? pcmSum;
+                        const hscOut = f1?.hscGrandTotalOutOf ?? f1?.hscPcmTotalOutOf ?? sp?.hscMarksOutOf ?? (pcmSum != null ? 300 : 600);
+                        const hscPct = sp?.hscPercentage ?? (hscObt != null && hscOut ? (Number(hscObt) / Number(hscOut)) * 100 : null);
+                        const hscText = hscObt != null ? `${hscObt} / ${hscOut}` : "-";
+                        const hscPctText = hscPct ? ` (${Number(hscPct).toFixed(2)}%)` : "";
+
+                        return (
+                          <>
+                            <div>
+                              <span className="text-muted-foreground block text-[11px]">S.S.C. Marks:</span>
+                              <span className="font-semibold text-foreground">
+                                {sscText}{sscPctText}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground block text-[11px]">H.S.C. Marks:</span>
+                              <span className="font-semibold text-foreground">
+                                {hscText}{hscPctText}
+                              </span>
+                            </div>
+                          </>
+                        );
+                      })()}
                       <div>
-                        <span className="text-muted-foreground block text-[11px]">S.S.C. Marks:</span>
-                        <span className="font-semibold text-foreground">
-                          {selectedStudent.studentProfile?.sscMarksObtained ?? "-"} / {selectedStudent.studentProfile?.sscMarksOutOf ?? 100}
-                          {selectedStudent.studentProfile?.sscPercentage ? ` (${Number(selectedStudent.studentProfile.sscPercentage).toFixed(2)}%)` : ""}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block text-[11px]">H.S.C. Marks:</span>
-                        <span className="font-semibold text-foreground">
-                          {selectedStudent.studentProfile?.hscMarksObtained ?? "-"} / {selectedStudent.studentProfile?.hscMarksOutOf ?? 100}
-                          {selectedStudent.studentProfile?.hscPercentage ? ` (${Number(selectedStudent.studentProfile.hscPercentage).toFixed(2)}%)` : ""}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block text-[11px]">PCM Subjects (Physics / Math / {selectedStudent.studentProfile?.hscCustomSubjectName || "Chem"}):</span>
+                        <span className="text-muted-foreground block text-[11px]">PCM Subjects (Physics / Math / {selectedStudent.form1?.hscChemistrySubjectName || selectedStudent.studentProfile?.hscCustomSubjectName || "Chem"}):</span>
                         <span className="font-medium text-foreground">
-                          {selectedStudent.studentProfile?.hscPhysicsMarks ?? "-"} / {selectedStudent.studentProfile?.hscMathMarks ?? "-"} / {selectedStudent.studentProfile?.hscChemistryMarks ?? "-"}
+                          {selectedStudent.form1?.hscPhysicsObtained ?? selectedStudent.studentProfile?.hscPhysicsMarks ?? "-"} / {selectedStudent.form1?.hscMathsObtained ?? selectedStudent.studentProfile?.hscMathMarks ?? "-"} / {selectedStudent.form1?.hscChemistryObtained ?? selectedStudent.studentProfile?.hscChemistryMarks ?? "-"}
                         </span>
                       </div>
-                      {selectedStudent.studentProfile?.diplomaBranchCourse && (
+                      {(selectedStudent.form1?.diplomaBranchCourse || selectedStudent.studentProfile?.diplomaBranchCourse) && (
                         <div className="col-span-2">
                           <span className="text-muted-foreground block text-[11px]">Diploma Details:</span>
                           <span className="font-medium text-foreground">
-                            {selectedStudent.studentProfile.diplomaBranchCourse} • BTE: {selectedStudent.studentProfile.diplomaBteEnrollmentNo || "-"} • Pass Year: {selectedStudent.studentProfile.diplomaYearOfPassing || "-"}
+                            {selectedStudent.form1?.diplomaBranchCourse || selectedStudent.studentProfile?.diplomaBranchCourse} • BTE: {selectedStudent.form1?.diplomaBteEnrollmentNo || selectedStudent.studentProfile?.diplomaBteEnrollmentNo || "-"} • Pass Year: {selectedStudent.form1?.diplomaYearOfPassing || selectedStudent.studentProfile?.diplomaYearOfPassing || "-"}
                           </span>
                         </div>
                       )}
+                      {(() => {
+                        const f3 = selectedStudent.form3;
+                        const gaps = f3?.educationalGaps || [];
+                        const g = gaps[0] || {};
+                        const examName = g.lastExamName || f3?.gapLastExamName;
+                        const seatNo = g.seatNo || f3?.gapSeatNo;
+                        const passing = g.monthYearPassing || f3?.gapMonthYearPassing;
+                        const pct = g.percentage || f3?.gapPercentage;
+
+                        if (!examName && !seatNo && !passing) return null;
+
+                        return (
+                          <div className="col-span-full bg-amber-500/10 p-2 rounded border border-amber-500/20">
+                            <span className="text-amber-700 dark:text-amber-400 block text-[11px] font-semibold">Educational Gap Details:</span>
+                            <span className="font-medium text-foreground text-xs">
+                              Exam: {examName || "-"} • Seat No: {seatNo || "-"} • Passing: {passing || "-"} {pct ? `(${pct}%)` : ""}
+                            </span>
+                          </div>
+                        );
+                      })()}
                       <div>
-                        <span className="text-muted-foreground block text-[11px]">CET / JEE Percentile:</span>
+                        <span className="text-muted-foreground block text-[11px]">CET / JEE Score:</span>
                         <span className="font-semibold text-primary">
-                          {selectedStudent.studentProfile?.cetPercentile ?? "-"} %ile
+                          {selectedStudent.form1?.cetPcmTotalObtained ? `${selectedStudent.form1.cetPcmTotalObtained} %ile (CET)` : selectedStudent.form1?.aieeeMarks ? `${selectedStudent.form1.aieeeMarks} (JEE)` : selectedStudent.capCandidate?.score ? `${selectedStudent.capCandidate.score} (${selectedStudent.capCandidate.scoreType === 'JEE_MAIN' ? 'JEE' : 'CET'})` : selectedStudent.studentProfile?.cetPercentile ? `${selectedStudent.studentProfile.cetPercentile} %ile` : "-"}
                         </span>
                       </div>
                     </div>

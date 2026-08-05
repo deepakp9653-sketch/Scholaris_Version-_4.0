@@ -29,6 +29,7 @@ function statusToStageIndex(status: string): number {
 function stageStatusFor(status: string, stageIdx: number): "complete" | "current" | "upcoming" | "blocked" {
   const idx = statusToStageIndex(status);
   if (status === "REJECTED" || status === "ON_HOLD") return "blocked";
+  if (status === "ADMITTED") return "complete";
   if (stageIdx < idx) return "complete";
   if (stageIdx === idx) return "current";
   return "upcoming";

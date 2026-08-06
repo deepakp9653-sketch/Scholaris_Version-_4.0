@@ -46,6 +46,28 @@ function getLocalYYYYMMDD(d: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function matchesBranch(branchCourse: string | null | undefined, target: string): boolean {
+  if (target === "ALL") return true;
+  const b = (branchCourse || "").toUpperCase();
+
+  if (target === "COMPUTER") {
+    return b.includes("COMP") || b.includes("COMPUTER");
+  }
+  if (target === "ENTC" || target === "E&TC") {
+    return b.includes("ELECTRONIC") || b.includes("ENTC") || b.includes("E&TC") || b.includes("ETC") || b.includes("TELECOM");
+  }
+  if (target === "ELECTRICAL") {
+    return b.includes("ELECTRICAL") || b.includes("ELECT") || b.includes("ELECTRIC");
+  }
+  if (target === "MECHANICAL") {
+    return b.includes("MECHANIC") || b.includes("MECH");
+  }
+  if (target === "CIVIL") {
+    return b.includes("CIVIL");
+  }
+  return b.includes(target);
+}
+
 export function RegistryClient({ records: initialRecords }: RegistryClientProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -83,6 +105,11 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
       if (dateFilter === "custom" && customDate && recDateStr !== customDate) return false;
     }
 
+    // 3. Branch Filter
+    if (selectedExportBranch !== "ALL") {
+      if (!matchesBranch(r.studentProfile?.branchCourse, selectedExportBranch)) return false;
+    }
+
     return true;
   });
 
@@ -103,11 +130,10 @@ export function RegistryClient({ records: initialRecords }: RegistryClientProps)
               >
                 <option value="ALL">All Branches</option>
                 <option value="COMPUTER">Computer Engineering</option>
-                <option value="IT">Information Technology</option>
                 <option value="ENTC">Electronics & Telecomm (E&TC)</option>
+                <option value="ELECTRICAL">Electrical Engineering</option>
                 <option value="MECHANICAL">Mechanical Engineering</option>
                 <option value="CIVIL">Civil Engineering</option>
-                <option value="AIDS">AIDS / Data Science</option>
               </select>
               <Button
                 size="sm"

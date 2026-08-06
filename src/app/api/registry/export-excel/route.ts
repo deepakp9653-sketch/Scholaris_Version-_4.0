@@ -28,12 +28,22 @@ export async function GET(req: NextRequest) {
       if (selectedBranch === "ALL") return true;
       const b = (r.studentProfile?.branchCourse || "").toUpperCase();
       const target = selectedBranch.toUpperCase();
-      if (target === "COMPUTER") return b.includes("COMPUTER") || b.includes("COMP") || b.includes("CO");
-      if (target === "IT") return b.includes("INFORMATION") || b.includes("IT");
-      if (target === "ENTC" || target === "E&TC") return b.includes("ELECTRONICS") || b.includes("ENTC") || b.includes("E&TC") || b.includes("EJ");
-      if (target === "MECHANICAL") return b.includes("MECHANICAL") || b.includes("MECH") || b.includes("ME");
-      if (target === "CIVIL") return b.includes("CIVIL") || b.includes("CE");
-      if (target === "AIDS") return b.includes("AI") || b.includes("AIDS") || b.includes("DATA");
+
+      if (target === "COMPUTER") {
+        return b.includes("COMP") || b.includes("COMPUTER");
+      }
+      if (target === "ENTC" || target === "E&TC") {
+        return b.includes("ELECTRONIC") || b.includes("ENTC") || b.includes("E&TC") || b.includes("ETC") || b.includes("TELECOM");
+      }
+      if (target === "ELECTRICAL") {
+        return b.includes("ELECTRICAL") || b.includes("ELECT") || b.includes("ELECTRIC");
+      }
+      if (target === "MECHANICAL") {
+        return b.includes("MECHANIC") || b.includes("MECH");
+      }
+      if (target === "CIVIL") {
+        return b.includes("CIVIL");
+      }
       return b.includes(target);
     });
 
